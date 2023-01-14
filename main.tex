@@ -1,0 +1,110 @@
+ % \documentclass[a4paper, draft]{report}
+\documentclass[a4paper, 10pt]{report}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{csquotes}
+\usepackage{hyphenat}
+\usepackage{biblatex}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subfig}
+\usepackage{textcomp}
+\usepackage{gensymb}
+\usepackage{booktabs}
+\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{siunitx}
+\usepackage[acronym]{glossaries}
+
+% \usepackage[scale=1.0]{draftwatermark}
+
+\addbibresource{biblio.bib}
+\input{glossaries.tex}
+\graphicspath{
+    {img}
+}
+% \hyphenation{Mathe-matik wieder-gewinnen}
+
+
+
+
+\title{Extension of the SA turbulence model for rough walls in ADflow}
+\author{David Anderegg}
+
+% Add Numbering to chapters
+\makeatletter
+\def\@makechapterhead#1{%
+  \vspace*{50\p@}%
+  {\parindent \z@ \raggedright \normalfont
+    \interlinepenalty\@M
+    \Huge\bfseries  \thechapter.\quad #1\par\nobreak
+    \vskip 40\p@
+  }}
+\makeatother
+
+\renewcommand{\arraystretch}{1.1}
+
+
+
+\usepackage{fancyhdr}
+\setlength{\headheight}{34pt}
+
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+
+
+\fancypagestyle{plain}{
+    % header inputs
+    \lhead{IMES}
+    \chead{Extension of the SA turbulence model for rough walls in ADflow}
+    \rhead{\includegraphics[width=1cm]{uni_header}}
+
+
+    %footer inputs
+    % \lfoot{Innosuisse 35172.1 IP-ENG}
+    \cfoot{Page  \thepage}
+    \rfoot{\today}
+}
+\pagestyle{plain}
+
+\setlength{\parskip}{.25em}
+
+\begin{document}
+    % \maketitle
+
+    % \begin{abstract}
+    %   blablbalabl
+    % \end{abstract}
+
+    % \tableofcontents\clearpage
+    % \listoffigures\clearpage
+    % \listoftables\clearpage
+
+
+    \chapter{Introduction}
+    \input{introduction/introduction.tex}
+
+    \chapter{Theoretical Fundamentals}
+    \input{fundamentals/fundamentals.tex}
+
+    \chapter{Methods}
+    \input{methods/methods.tex}
+
+
+    \chapter{Results}
+    \input{results/results.tex}
+
+
+    \chapter{Conclusion}
+    \input{conclusion/conclusion.tex}
+
+    \printbibliography
+
+\end{document}

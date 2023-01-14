@@ -1,0 +1,31 @@
+In a previous project, the author developed new airfoils for a vertical axis
+wind turbine \cite{awp} using a CFD Solver called ADflow. It became clear that
+the performance of the airfoils in soiled conditions must be taken into
+account. The airfoils are highly sensitivity to surface contamination if
+neglected. To fix this, the author implemented a `hacky` variant of the rough
+\gls{sa} turbulence model.
+
+
+\section{Goals}
+The goal of this project is to streamline and finalize this implementation.
+Namely the following sub-goals should be achieved:
+
+\begin{itemize}
+  \item Modify the existing \gls{sa} turbulence model for rough walls
+  \item Test and verify the implementation.
+  \item Use \gls{ad} to differentiate the newly added code
+  \item Test and verify the gradients for the rough variant
+\end{itemize}
+
+
+\section{ADflow}
+The CFD Solver ADflow (AD stands for \Gls{ad}) is developed at the university of
+Michigan. It is based on a structured, multiblock solver called `sumb`. It has
+been adapted for gradient based optimization by means of \gls{ad} and the
+`adjoint method`. Additionally it has some highly efficient and robust ANK and
+NK Solvers. Those are needed to achieve machine-precision convergence which is a
+requirement for efficient gradient basded optimization \cite{Mader2020a}
+\cite{Kenway2019a} \cite{Yildirim2019b}.
+
+ADflow has a python interface which makes it fairly easy and straight forward to
+be used in optimizations scripts. But the heavy lifting is done in Fortran. This approach allows to combine highly effiecent and fast computations with the easy of a scripting language.
