@@ -44,6 +44,7 @@ coefficient, which may be easily compared, the shear stress is divided by the
 
 
 \subsection{Turbulent boundary layer}
+\label{sec:turbulent_BL}
 When looking closer at a turbulent boundary layer, once can observer two
 different regions. At the top is a \textit{turbulent layer} which is only
 indirectly affected by the friction with the wall. At the bottom is a layer that
@@ -57,7 +58,7 @@ To examine the cross section of the boundary layer, it make sens to introduce
 the concept of the dimensionless \textit{wall distance} $y^{+}$. Hand in hand
 goes the dimensionless velocity $u^{+}$. Moving to this dimensionless system
 allows us to compare different boundary layers from different flow conditions
-more easily. The velocity $u^{+}$ is given by \cite{jousefm_2020}:
+more easily. The velocity $u^{+}$ is given by \cite{Schlichting2018}:
 
 \begin{equation}
   u^{+} = \frac{u}{u_{\tau}}
@@ -81,11 +82,11 @@ It is given by:
 viscosity} of the fluid.
 
 
-\subsubsection{Law of the wall}
+\subsubsection{Universal law of the wall}
 Theory which describes the velocity distribution of a turbulent boundary layer
 in fully developed flow\footnote{This means, the flow does not change with
-increasing x.}  is know as the \textit{law of the wall}. It defines the
-different regions as follows:
+increasing x.}  is know as the \textit{universal law of the wall}. It defines the
+different regions as follows \cite{Schlichting2018}:
 
 \paragraph{Viscous sublayer ($y^{+} < 5$)}
 For the viscous sublayer, $u^{+}$ is given by:
@@ -94,27 +95,33 @@ For the viscous sublayer, $u^{+}$ is given by:
   u^{+} = y^{+}
 \end{equation}
 
-\paragraph{Logarithmic area ($y^{+} > 30$)}
-In the fully turbulent region at the top of the boundary layer, the turbulence stress dominates and the velocity profile varies very slowly with a logarithmic function:
+\paragraph{Logarithmic overlap law ($y^{+} > 30$)}
+In the fully turbulent region at the top of the boundary layer, the turbulence
+stress dominates and the velocity profile varies very slowly with a logarithmic
+function:
 
 \begin{equation}
-  u^{+} = \frac{1}{\kappa} ln(y^{+}) + B
+  u^{+} = \frac{1}{\kappa} ln(y^{+}) + C^{+}
+  \label{eq:overlap_law}
 \end{equation}
 
-\noindent The Karman constant $\kappa$ is equal to $0.41$ and $B$ equals to $5.2$.
+\noindent The Karman constant $\kappa$ is equal to $0.41$ and $C^{+}$ equals to
+$5.0$ for smooth walls.
 
-\paragraph{Buffer layer ($5 < y^{+} < 30$)}
-The \textit{buffer layer} is located between the viscous sublayer and the
+\paragraph{Overlap layer ($5 < y^{+} < 30$)}
+The \textit{overlap layer} is located between the viscous sublayer and the
 logarithmic area. It is a region where the flow transitions from one to the
-other and is not well defined.
+other. It can not be described with such an easy equation as for the other two
+regions.
 
 If we plot the wall distance $y^{+}$ on a logarithmic scale and the velocity
 $u^{+}$ on a linear scale, the different regions are obvious. Take a look at
 figure \ref{fig:law_of_wall}.
 
 \begin{figure}[H] \centering
-\includegraphics[width=0.7\textwidth]{law_of_wall}
-    \caption{Cross section of a fully developed turbulent boundary layer \cite{jousefm_2020}.}
+\includegraphics[width=0.45\textwidth]{law_of_wall}
+    \caption{Cross section of a fully developed turbulent boundary layer
+             overlayed with measurements\cite{Schlichting2018}.}
     \label{fig:law_of_wall}
 \end{figure}
 
@@ -122,9 +129,81 @@ figure \ref{fig:law_of_wall}.
 
 
 
-\subsection{Turbulent boundary layer over rough walls}
+\subsection{The effect of roughness}
+Before the effects of roughness may be investigated, it makes sense to describe
+a standard roughness which is easier to compare. Take a look at figure
+\ref{fig:sand_roughness}. It is assumed the surface is tightly packed with balls
+of equal diameter. Because this is similar to sandpaper, this roughness is
+called \textit{sand roughness} or \textit{standard roughness}. The diameter of
+the balls is the \textit{sand roughness height} $k_{s}$. It is a measure for the
+roughness of a surface \cite{Schlichting2018}.
+
+\begin{figure}[H] \centering
+\includegraphics[width=0.45\textwidth]{sand_roughness}
+    \caption{Definition of \textit{sand roughness} and $k_{s}$ \cite{Schlichting2018}.}
+    \label{fig:sand_roughness}
+\end{figure}
+
+\noindent Analog to $u^{+}$ and $y^{+}$ (see section \ref{sec:turbulent_BL}),
+there exists a dimensionless $k_{s}^{+}$:
+
+\begin{equation}
+  k_{s}^{+} = \frac{k_{s}u_{\tau}}{\nu}
+\end{equation}
+
+\paragraph{Equivalent sand roughness}
+Real surfaces are not made up of balls as assumed in figure
+\ref{fig:sand_roughness}, but instead have a random distribution of peaks and
+vales. But it is possible to define a \textit{equivalent sand roughness}
+$k_{seq}$ which has the same effect on the boundary layer as the
+\textit{standard roughness} assumed so fare. The author has found some formula
+which allow the conversation of one to another, but they did not match with
+experimental data freely available and are thus deemed unreliable. According to
+\cite{Schlichting2018}, $k_{seq}$ must be obtained experimentally. Fortunately,
+it also lists some values for common materials and surface
+finishes\footnote{This may be found on page 532.}.
 
 
+In figure \ref{fig:rough_velocity_dist}, the velocity distribution for different
+$k_{s}^{+}$ values is plotted. When looking at a certain $y^{+}$ value, the
+rougher the surface is, the slower the flow. Because the boundary layer is the
+region where the flow reaches the infinite velocity ($U_{\infty}$), it must grow
+bigger. Thus the effect of roughness is simply a thickening of the boundary
+layer.
+
+\begin{figure}[H] \centering
+\includegraphics[width=0.4\textwidth]{rough_velocity_dist}
+    \caption{Velocity distribution for different surface roughness values \cite{Schlichting2018}.}
+    \label{fig:rough_velocity_dist}
+\end{figure}
+
+
+\subsection{Rough regimes}
+Depending on the height, roughness has different effects on the boundary layer.
+It may be classified in tree distinct regimes: \textit{hydraulically smooth},
+\textit{transition region} and \textit{fully rough}. They correspond
+approximately to the three different regions of the boundary layer. When the
+roughness is purely contained by the viscous sublayer, it does not have an
+effect at all. When it projects out of the viscous sublayer, the roughness
+effect start. If the roughness element projects right into the overlap layer,
+the viscosity effects vanish and the flow becomes fully rough. It is now
+independent of the Reynolds number \cite{Schlichting2018}.
+
+
+When looking at equation \ref{eq:overlap_law}, it simply changes the variable
+$C^{+}$. Thus it may be summarized as follows\footnote{Please note $C^{+}$ is
+not further described in the transition region.}:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{l l l}
+    hydraulically smooth:   & $0 \leq k_{s}^{+} \leq 5$   & $C^{+} \approx 5.0$\\
+    transition region:      & $ 5 < k_{s}^{+} < 70$       & $C^{+}(k_{s}^{+})$\\
+    fully rough:            & $70 \leq k_{s}^{+}$         & $C^{+} \approx 8.0 - \frac{1}{\kappa} ln(k_{s}^{+})$
+  \end{tabular}
+  \caption{$C^{+}$ dependence on $k_{s}^{+}$ \cite{Schlichting2018}.}
+  \label{tab:opt_prob}
+\end{table}
 
 \section{Reynold's Averaged Navier Stokes (RANS)}
 
