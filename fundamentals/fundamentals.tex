@@ -159,9 +159,9 @@ $k_{seq}$ which has the same effect on the boundary layer as the
 \textit{standard roughness} assumed so fare. The author has found some formula
 which allow the conversation of one to another, but they did not match with
 experimental data freely available and are thus deemed unreliable. According to
-\cite{Schlichting2018}, $k_{seq}$ must be obtained experimentally. Fortunately,
-it also lists some values for common materials and surface
-finishes\footnote{This may be found on page 532.}.
+\cite{Schlichting2018}, $k_{seq}$ must be obtained experimentally. It lists some
+values for common materials and surface finishes\footnote{This may be found on
+page 532.}.
 
 
 In figure \ref{fig:rough_velocity_dist}, the velocity distribution for different
@@ -178,7 +178,7 @@ layer.
 \end{figure}
 
 
-\subsection{Rough regimes}
+\subsubsection{Rough regimes}
 Depending on the height, roughness has different effects on the boundary layer.
 It may be classified in tree distinct regimes: \textit{hydraulically smooth},
 \textit{transition region} and \textit{fully rough}. They correspond
@@ -186,8 +186,8 @@ approximately to the three different regions of the boundary layer. When the
 roughness is purely contained by the viscous sublayer, it does not have an
 effect at all. When it projects out of the viscous sublayer, the roughness
 effect start. If the roughness element projects right into the overlap layer,
-the viscosity effects vanish and the flow becomes fully rough. It is now
-independent of the Reynolds number \cite{Schlichting2018}.
+the viscosity effects vanish and the flow becomes fully rough
+\cite{Schlichting2018}.
 
 
 When looking at equation \ref{eq:overlap_law}, it simply changes the variable
@@ -198,25 +198,196 @@ not further described in the transition region.}:
   \centering
   \begin{tabular}{l l l}
     hydraulically smooth:   & $0 \leq k_{s}^{+} \leq 5$   & $C^{+} \approx 5.0$\\
-    transition region:      & $ 5 < k_{s}^{+} < 70$       & $C^{+}(k_{s}^{+})$\\
-    fully rough:            & $70 \leq k_{s}^{+}$         & $C^{+} \approx 8.0 - \frac{1}{\kappa} ln(k_{s}^{+})$
+    transition region:      & $ 5 < k_{s}^{+} < 70$ & $C^{+}(k_{s}^{+})$\\
+    fully rough:            & $70 \leq k_{s}^{+}$      & $C^{+} \approx 8.0 - \frac{1}{\kappa} ln(k_{s}^{+})$
   \end{tabular}
   \caption{$C^{+}$ dependence on $k_{s}^{+}$ \cite{Schlichting2018}.}
   \label{tab:opt_prob}
 \end{table}
 
 \section{Reynold's Averaged Navier Stokes (RANS)}
+The \textit{Navier-Stokes} equations describe how tho the \textit{velocity}
+($U$), \textit{pressure} ($P$), \textit{temperature} ($T$) and \textit{density}
+($\rho$) of a moving fluid are related. They are differential equations which
+almost allway can't be solved analytically. Thus numerical methods are needed.
+The physical quantities depend on four variables: \textit{spatial coordinates}
+(x, y, z) and the \textit{time} (t). As numerical methods are used, those
+quantities need to be discretized \cite{nasaNS}.
 
-\subsection{ADflow}
+In high Reynold's number flows, the length and time-scales of different eddies
+differs drastically. To adequately resolve the smallest eddies, which are
+basically turbulence, such a fine mesh and timestep would be needed, that it is
+not viable. To deal with that, simplifications are needed: (1) solving for a
+steady flow and (2) accounting for turbulence stochastically. This means only
+one simulation (instead of one every x millisecond) and a much coarser grid is
+sufficient.
 
-\subsection{SU2}
+\subsubsection{Reynolds averaging}
+Osborne Reynolds proposed in 1895 a solution which would later be known as
+\textit{Reynolds-averaged Navier-Stokes}. The basic idea is to separate the
+velocity (and all the other physical properties which are resolved) in two
+components \cite{leschziner2015statistical}:
+
+\begin{equation}
+  U_{i} = \bar U_{i} + u_{i}^{\prime} \qquad
+  P = \bar P + p^{\prime}
+\end{equation}
+
+\noindent Where the subscript $i$ stands for all three spatial coordinates (x,
+y, z). $\bar U_{i}$ is the mean velocity, which does not change and
+$u_{i}^{\prime}$ is the fluctuating part due to turbulence which is not
+resolved. The same notation is used for $P$. Plugging this into the
+incompressible Navier-Stokes equations leads to:
+
+\begin{equation}
+  \label{eq:incomp_RANS}
+  \frac{\partial \rho \bar U_{i} \bar U_{j}}{\partial x_{j}} =
+  \frac{\partial \bar P}{\partial x_{i}} +
+  \frac{\partial}{\partial x_{j}} \nu (\frac{\partial \bar U_{i}}{\partial x_{j}} +
+  \frac{\partial \bar U_{j}}{\partial x_{i}}) -
+  \frac{\partial}{\partial x_{j}} \rho u_{i}^{\prime} u_{j}^{\prime}
+\end{equation}
+
+\noindent Where $\rho u_{i}^{\prime} u_{j}^{\prime}$ are the \textit{six} independent
+\textit{Reynolds-stresses} which may be denoted in tensor notation:
+
+\begin{equation}
+  \rho \bar u_{i} \bar u_{j} = \rho
+  \begin{pmatrix}
+    u_{1}^{\prime 2}              & u_{1}^{\prime} u_{2}^{\prime} & u_{1}^{\prime} u_{3}^{\prime} \\
+    u_{2}^{\prime} u_{1}^{\prime} & u_{2}^{\prime 2}              & u_{2}^{\prime} u_{3}^{\prime} \\
+    u_{3}^{\prime} u_{1}^{\prime} & u_{3}^{\prime} u_{2}^{\prime} & u_{3}^{\prime 2}
+  \end{pmatrix}
+\end{equation}
+
+\noindent Equation \ref{eq:incomp_RANS} is complemented by the Reynolds-averaged
+mass-conservation equation:
+
+\begin{equation}
+  \frac{\partial \rho \bar U_{j}}{\partial x_{j}} = 0
+\end{equation}
 
 
+\subsubsection{Turbulence model}
+To calculate the unknown Reynolds-stresses, a \textit{turbulence model} is used.
+There exist multiple approaches, but two are the most widely used: \textit{Eddy
+viscosity models} and \textit{Reynolds stress transport models}. As the
+\textit{Spalart Allmaras} model is the former one, only this is explained in more
+detail.
 
-\section{Turbulence Models}
+\paragraph{Eddy viscosity models}
+These kind of models depend on the \textit{Boussinesq-assumption} which says
+that the effect of turbulence is similar to that of an increased viscosity. Thus
+it introduces the \textit{eddy viscosity} $\mu_{t}$. After some equation
+mangling one may calculate the Reynolds stresses from the eddy viscosity as
+follows:
+
+\begin{equation}
+  - \rho u_{i}^{\prime} u_{j}^{\prime} =
+  \nu_{t} (\frac{\partial \bar U_{i}}{\partial x_{j}} +
+  \frac{\partial \bar U_{j}}{\partial x_{i}}) -
+  \frac{2}{3} \delta_{ij} \rho k
+  \label{eq:boussinesq}
+\end{equation}
+
+\noindent Where
+
+\begin{align*}
+  \delta_{ij} = \; &0 \qquad \text{for} \qquad i \neq j \\
+                   &1 \qquad \text{for} \qquad i = j
+\end{align*}
+
+\noindent and $k$ is the \textit{turbulent kinetic energy}. Thus the calculation
+of the six Reynolds-stresses has reduced to calculating $\nu_{t}$ and $k$
+\cite{leschziner2015statistical}.
 
 
-\subsection{Spalart Allmaras (SA)}
+\subsection{Spalart Allmaras (SA) turbulence model}
+The \textit{Spalart Allmaras} turbulence model has been introduced in 1992. It
+is a \textit{one-equation} model which means it only computes the eddy viscosity
+$\mu_{t}$. When looking at equation \ref{eq:boussinesq}, the most right hand
+term is a correction which is neglected as the turbulent kinetic energy is not
+readily available. Therefore this model trades accuracy for speed
+\cite{leschziner2015statistical} \cite{nasatmr}.
+
+Analog to $u^{+}$ one can convert the eddy viscosity to wall scaling:
+
+\begin{equation}
+  \nu_{t}^{+} = \frac{\nu_{t}}{\nu}
+\end{equation}
+
+\noindent In figure \ref{fig:nu_t_wall}, its contour is plotted in the boundary
+layer of a flat plate a zero incidence. It is almost linear in the logarithmic
+region, but varies as $(y^{+})^{4}$ in the viscous sublayer. Finite volume
+methods are only able to interpolate linearly in cells. This means a high number
+of cells would be needed to properly represent $\nu_{t}^{+}$ in the viscous
+sublayer. The Idea of the Spalart Allmaras (SA) turbulence model is to replace
+$\nu_{t}^{+}$ with a modified eddy viscosity $\tilde \nu^{+}$ which behaves
+linearly right to the surface. Additionally to reducing the number of cells,
+this also makes the numerical behavior more stable. As the viscous sublayer can
+not be neglected, the SA model adjusts $\tilde \nu^{+}$ in a post-processing step
+to reflect the real $\nu_{t}^{+}$ behavior \cite{KALITZIN2005265} \cite{fluid_101}.
+
+\begin{figure}[H] \centering
+  \includegraphics[width=0.5\textwidth]{eddy_viscosity}
+  \caption{Eddy viscosity $\nu_{t}^{+}$ and modified eddy viscosity
+    $\tilde \nu^{+}$ used in the Spalart Allmaras model \cite{KALITZIN2005265}.}
+  \label{fig:nu_t_wall}
+\end{figure}
+
+\noindent The transport equation is given by \cite{nasatmr}:
+
+\begin{equation}
+  \frac{D \tilde \nu}{D t} =
+  c_{b1}(1 - f_{t2}) \tilde S \tilde \nu -
+  \left[ c_{w1}f_{w} - \frac{c_{b1}}{\kappa^{2}}f_{t2} \right]
+  \left( \frac{\tilde \nu}{d} \right) ^{2} +
+  \frac{1}{\sigma} \left[ \frac{\partial}{\partial x_{j}}
+  \left( (\nu + \tilde \nu) \frac{\partial \tilde \nu}{\partial x_{j}}\right) +
+  c_{b2} \frac{\partial \tilde \nu}{\partial x_{i}} \frac{\partial \tilde \nu}{\partial x_{i}} \right]
+\end{equation}
+
+\noindent Then, the turbulent energy is computed as:
+
+\begin{equation}
+  \nu_{t} = \rho \tilde \nu f_{v1}
+\end{equation}
+
+\noindent where
+
+\begin{align}
+  f_{v1} &= \frac{\chi^{3}}{\chi^{3} + c_{v1}^{3}} &
+  \chi &= \frac{\tilde \nu}{\nu} &
+  \tilde S &= \Omega + \frac{\tilde \nu}{\kappa^{2} d^{2}} f_{v2} \\
+  \Omega &= \sqrt{2W_{ij}W_{ij}} &
+  f_{v2} &= 1 - \frac{\chi}{1 + \chi f_{v1}} &
+  f_{w} &= g \left[ \frac{1 + c_{w3}^{6}}{g^{6} + c_{w3}^{6}} \right] ^{1/6} \\
+  g &= r + c_{w2}(r^{6} -r) &
+  r &= min \left[ \frac{\tilde \nu}{\tilde S \kappa^{2} d^{2}} \right] &
+  f_{t2} &= c_{t3} exp(-c_{t4} \chi^{2}) \\
+  W_{ij} &= \frac{1}{2} \left( \frac{\partial u_{i}}{x_{j}} - \frac{\partial u_{j}}{\partial x_{i}}\right) &
+  d &= \text{Distance to the nearest wall}
+\end{align}
+
+\noindent The boundary conditions are:
+\begin{equation}
+  \tilde \nu_{wall} = 0
+  \qquad \qquad
+  \tilde \nu_{farfield} = 3\nu_{\infty} :to: 5\nu_{\infty}
+\end{equation}
+
+\noindent The constants are:
+\begin{align*}
+  c_{b1} &= 0.1355 &
+  \sigma &= 2/3 &
+  c_{b2} &= 0.622 &
+  c_{w1} &= \frac{c_{b1}}{\kappa^{2}} + \frac{1 + c_{b2}}{\sigma} \\
+  c_{w2} &= 0.3 &
+  c_{w3} &= 2 &
+  c_{v1} &= 7.1 &
+  c_{t3} &= 1.2 \\
+  c_{t4} &= 0.5
+\end{align*}
 
 
 \subsection{Modification of SA for rough walls}
