@@ -1,10 +1,173 @@
 \section{Implementation}
+Before explaining how the modifications for SA-rough were implemented, a couple
+of words about the architecture of ADflow are needed.
 
-\subsection{General Ideas}
+\paragraph{Block architecture}
+This solver only reads \textit{structured grids}, this means all state and grid
+variables can be represented in a ``three dimensional table''. One can also think
+of a 3d array. This organization is called the \textit{block architecture}. The
+index of the block variables are \texttt{i}, \texttt{j} and \texttt{k} for the
+x, y and z directions respectively.
 
-\subsection{Modifications to Wall distance computation}
+\paragraph{Boundary Conditions}
+ADflow saves the values of the boundary conditions in a similar way as the block
+variables. But they are 2d arrays where the indexes \texttt{i} and \texttt{j}
+are used. It is possible to directly relate a volume cell in the block to a
+surface cell at the boundary, but it is important to realise surface and volume
+cells are different entities.
 
-\subsection{Modifications to SA source terms}
+\paragraph{Global Cell ID}
+ADflow assigns a \textit{global cell id} (\texttt{gID} to each volume cell. The
+index is an continuously increasing integer that starts at \textbf{0}. It is
+applied in a systematic manner that will not be explained further.
+
+\paragraph{Block splitting}
+ADflow is capable of solving the governing equations by parallel means. To make
+this possible, the whole mesh is split in different blocks. Each processor then
+only loads its corresponding block. It is important to realize that no single
+processor has access to the whole volume or surface cells\footnote{Assuming more
+than one processor is used}.
+
+\subsection{General thoughts}
+This modifications requires a little bit more RAM and cpu power. It could also
+obscure the standard implementation of the SA model. To cater those
+considerations, an on/off switch has been introduced in the python layer called
+\texttt{useRoughSA}. When it is \texttt{False}, all implemented changes are
+disabled and ADflow behaves exactly as it did before.
+
+
+\subsection{Changes to wall distance}
+The regular SA model needs the distance to the nearest wall. ADflow computes
+this distance in a preprocessing step and saves it as a block variable
+\texttt{d2wall} for further use. It is slightly more complicated as ADflow can
+handle warping meshes and thus this distance needs to be adjusted after each
+warp, but this will be explained in more detail later. As shown in equation
+\ref{eq:d_new}, the distance to the nearest wall needs to be modified. There are
+two strategies to achieve this:
+
+\begin{enumerate}
+  \item Overwrite the current \texttt{d2wall} with the modified value. E.g. do
+        the modification in a preprocessing step.
+  \item Keep the current \texttt{d2wall} as it is and apply the modification
+        later when the distance is actually needed.
+\end{enumerate}
+
+\noindent Strategy (2) has been chosen as changing the \texttt{d2wall} might
+have unforeseen consequences and is just obscuring. But this means, a new block
+variable \texttt{ks} needs to be introduced. It will hold the roughness value of
+the nearest surface.
+
+\subsubsection{Calculating the distance to the nearest wall}
+To be able to assign the correct roughness value of the nearest wall, one must
+know which wall is nearest to the current volume cell. For the calculation of
+the wall distance, this information is already needed. Thus it was natural to
+adapt this function. To explain the changes, one must know how it works:
+
+\begin{enumerate}
+  \item The function \texttt{buildClusterWalls} is called. It figures out which
+surface mesh belongs to the \textit{no-slip wall} type and gathers all of it on
+each processor. This does not scale. But it is assumed the surface mesh is
+orders of magnitudes smaller than the volume mesh.  Thus this only becomes a
+problem when the size of the volume mesh approaches hundreds of millions of
+cells.
+
+Once it has this information, it builds up the whole surface mesh. This is not
+straight forward as it might be an overset\footnote{This is also know as Chimera
+patch.} mesh where different meshes are overlapping. Therefore it must decide
+which cells to drop and which to keep.
+
+After that, it relates the surface mesh to the volume cells and returns the
+\texttt{gID}. At first glance, it might seem weird to return ``volume cells''
+when the distance to a surface cell is required. But the grid points of both
+types are the same and for the walldistance computation the boundary conditions
+do not matter.
+
+  \item Once the \texttt{clusterWalls} are built, the function
+\texttt{determineWallAssociation} iterates through all the volume cells on the
+current processor and figures out which \texttt{gID} of the
+\texttt{clusterWalls} is nearest.
+
+Whit that information, it creates a ``PETSc scatter''\footnote{PETSc stands for
+Portable, Extensible Toolkit for Scientific Computation.} object called
+\texttt{wallScatter}. This object is (in simplified terms) a two dimensional
+list which keeps track of which surface cell is nearest to which volume cell. As
+the surface cells have been replaced with volume cells before, this is basically
+a mapping of volume cells to volume cells.
+
+After that, the memory for \texttt{clusterWalls} is released.
+
+\item A new block variable \texttt{xSurf} is introduced. It holds all the
+surface grid points, which are needed for the wall distance calculation for the
+volume cells of the current processor. It is the receiving end of the
+\texttt{wallScatter} object.
+
+\item In the End, \texttt{updateWallDistancesQuickly} is called to actually
+compute the distance to the nearest wall based on the grid points stored in
+\texttt{xSurf}.
+
+\item After the mesh has been warped, only \texttt{updateWallDistancesQuickly}
+is called. This means, it is assumed the nearest surface cell does not
+change, only its coordinates.
+\end{enumerate}
+
+\noindent Please note the outlined steps above are in reality a bit more
+complicated and only the broad context is described.
+
+
+\subsubsection{Assigning the block variable \texttt{ks}}
+To fill the block variable \texttt{ks} with the roughness value of the nearest
+surface, the before described walldistance computation is hijacked as follows:
+
+\begin{enumerate}[label=\Alph*]
+  \item Introduce a new block variable called \texttt{nearestWallCellInd}. It
+holds the \texttt{gID} of the nearest surface cell. Its value is assigned in
+step (2) where the \texttt{gID} of the nearest surface cell is determined.
+
+  \item Create a new subroutine called \texttt{updateWallRoughness}. A separate
+subroutine is needed as the roughness value on the boundary is only read from
+the CGNS\footnote{CGNS stands for CFD General Notation System and is a format
+for meshes and their solutions. It is the primary format that ADflow interacts
+with.} file once the walldistance has already been calculated. Thus it is not
+possible to do it when step (2) is done. ADflow has some helper functions that
+allows to overwrite the values of the boundary conditions which are saved in the
+CGNS file. Having a separate subroutine to assign \texttt{ks} allows to also use
+those helper functions for the wall roughness.
+\end{enumerate}
+
+\noindent Now, the inner workings of \texttt{updateWallRoughness} are explained
+in more detail:
+
+\begin{enumerate}[label=\Alph*]
+  \item Each processor creates two lists: (a) the roughness values of the
+surface cells on current processor and (b) the corresponding \texttt{gID}.
+
+  \item Then those two lists are gathered on all processors. This means, every
+processor has a list ($\alpha$) of all surface roughness values and ($\beta$) of
+all corresponding \texttt{gID}. This does also not scale. But this constraint
+has been violated before (in \texttt{buildClusterWalls}) and thus the totally
+required RAM is not increased significantly.
+
+\item Now, each processor iterates through its volume cells and requests the
+\texttt{gID} from \texttt{nearestWallCellInd}. Then it searches list ($\beta$)
+until it finds the same \texttt{gID} and writes down the index \texttt{I} where
+it found it.
+
+\item Finally, it assigns the value of list ($\alpha$) at index \texttt{I} to the
+block variable \texttt{ks}.
+\end{enumerate}
+
+\noindent It is important to note that this strategy can handle different
+roughness values for the surface. But those values are not interpolated and are
+thus only accurate in the limiting sense of an infinitely fine grid. It can also
+lead to weird situations where one single volume cell is assigned a roughness
+value where as its surrounding cells are not. This happens because its center is
+somehow closest to a small corner of a rough surface cell. This also vanishes
+with increasing cell count.
+
+\subsection{SA source terms}
+
+
+
 
 \section{Verification}
 
