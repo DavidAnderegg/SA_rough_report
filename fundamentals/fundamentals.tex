@@ -398,6 +398,7 @@ CFD-codes as those distances must be communicated across different processors.
 
 
 \subsection{Modification of SA for rough walls}
+\label{subsec:mod_sa_rough}
 As can bee seen in figure \ref{fig:rough_velocity_dist}, the main effect of
 roughness is a downward shift in the log region. According to \cite{sa_rough},
 two different methods are proposed:
@@ -429,6 +430,7 @@ The biggest change is the distance $d$ which accounts for the shift of a
 \noindent Additionally, $\chi$ is modified:
 
 \begin{equation}
+  \label{eq:chi_new}
   \chi = \frac{\tilde \nu}{\nu} + c_{R1} \frac{k_{s}}{d_{new}}
 \end{equation}
 
@@ -442,6 +444,7 @@ The biggest change is the distance $d$ which accounts for the shift of a
 function $f_{v2}$ also needs to be modified:
 
 \begin{equation}
+  \label{eq:fv2_new}
   f_{v2} = 1 - \frac{\tilde \nu}{\nu + \tilde \nu f_{v1}}
 \end{equation}
 

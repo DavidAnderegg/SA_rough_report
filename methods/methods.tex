@@ -165,9 +165,26 @@ somehow closest to a small corner of a rough surface cell. This also vanishes
 with increasing cell count.
 
 \subsection{SA source terms}
+As described in section \ref{subsec:mod_sa_rough}, the terms $\chi$ (equation
+\ref{eq:chi_new}) and $f_{v2}$ (equation \ref{eq:fv2_new}) need to be modified.
+This has been straight forward. But it is important to not forget the
+calculation of $d_{new}$ (equation \ref{eq:d_new}) as this has been postponed in
+the previous section.
 
+ADflow employs some Newton-type solvers that require the Jacobian of the
+resiudals. Thus it was necessary to also modify the derivative of
+$\partial f_{v2} / \partial \tilde \nu$ as follows:
 
+\begin{equation}
+  \frac{\partial f_{v2}}{\partial \tilde \nu} =
+  \frac{\tilde \nu^{2} \frac{\partial f_{v1}}{\partial \tilde \nu} - \nu}
+  {(\tilde \nu f_{v1} + \nu)^{2}}
+\end{equation}
 
+\noindent As said before, those changes are only active when \texttt{useRoughSA}
+is \texttt{True}.
+
+\subsection{SA boundary conditions}
 
 \section{Verification}
 
