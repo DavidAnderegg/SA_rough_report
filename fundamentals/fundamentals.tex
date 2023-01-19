@@ -130,6 +130,7 @@ figure \ref{fig:law_of_wall}.
 
 
 \subsection{The effect of roughness}
+\label{subsec:roughness}
 Before the effects of roughness may be investigated, it makes sense to describe
 a standard roughness which is easier to compare. Take a look at figure
 \ref{fig:sand_roughness}. It is assumed the surface is tightly packed with balls
@@ -376,7 +377,7 @@ to reflect the real $\nu_{t}^{+}$ behavior \cite{KALITZIN2005265} \cite{fluid_10
   \tilde \nu_{farfield} = 3\nu_{\infty} :to: 5\nu_{\infty}
 \end{equation}
 
-\noindent The constants are:
+\noindent And the constants are:
 \begin{align*}
   c_{b1} &= 0.1355 &
   \sigma &= 2/3 &
@@ -389,5 +390,69 @@ to reflect the real $\nu_{t}^{+}$ behavior \cite{KALITZIN2005265} \cite{fluid_10
   c_{t4} &= 0.5
 \end{align*}
 
+\noindent Please note the distance to the nearest wall $d$ is used as the
+turbulence length scale. It reduces the size of the eddies near the wall. This
+is a physical phenomenon which has been observed in reality
+\cite{leschziner2015statistical}. But it can be a challenge for parallel
+CFD-codes as those distances must be communicated across different processors.
+
 
 \subsection{Modification of SA for rough walls}
+As can bee seen in figure \ref{fig:rough_velocity_dist}, the main effect of
+roughness is a downward shift in the log region. According to \cite{sa_rough},
+two different methods are proposed:
+
+\begin{itemize}
+  \item Models where the eddy viscosity is zero at the wall. The effect of the
+        roughness is modeled through a reduction of the damping function.
+  \item Models where the eddy viscosity is not zero at wall. This can be
+        interpreted as shifting the wall upwards into the roughness.
+        Apparently, this approach works better for small roughness values.
+\end{itemize}
+
+\noindent There exists two different extension for the SA model which employ the
+strategy of a non zero eddy viscosity at the wall. One proposed by
+\textit{Boeing} and the other by \textit{ONERA}. The approach by ONERA is
+slightly more complicated\footnote{It changes the SA model more.} and also needs
+the friction velocity. Thus this work implemented the extension proposed by
+Boeing.
+
+\subsubsection{Changed terms}
+The biggest change is the distance $d$ which accounts for the shift of a
+'virtual' wall upwards \cite{sa_rough}\cite{nasatmr}:
+
+\begin{equation}
+  d_{new} = d + 0.03k_{s}
+\end{equation}
+
+\noindent Additionally, $\chi$ is modified:
+
+\begin{equation}
+  \chi = \frac{\tilde \nu}{\nu} + c_{R1} \frac{k_{s}}{d_{new}}
+\end{equation}
+
+\noindent Where
+
+\begin{equation*}
+  c_{R1} = 0.5
+\end{equation*}
+
+\noindent As the new definition of $\chi$ should not affect $\tilde S$, the
+function $f_{v2}$ also needs to be modified:
+
+\begin{equation}
+  f_{v2} = 1 - \frac{\tilde \nu}{\nu + \tilde \nu f_{v1}}
+\end{equation}
+
+\noindent And finally, the boundary condition is replaced by:
+
+\begin{equation}
+  \left( \frac{\partial \tilde \nu}{\partial n} \right)_{wall} =
+  \frac{\tilde \nu_{wall}}{0.03k_s}
+\end{equation}
+
+
+
+\section{Adjoint method}
+Please refer to the report of the \textit{complementary module 1} for more
+information about the adjoint method \cite{cm1}.
