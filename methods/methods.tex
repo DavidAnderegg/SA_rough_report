@@ -185,6 +185,88 @@ $\partial f_{v2} / \partial \tilde \nu$ as follows:
 is \texttt{True}.
 
 \subsection{SA boundary conditions}
+ADflow employs the concept of \textit{halo cells}. This is an idea to exchange
+the boundaries of the split blocks when running in parallel. Take a look at
+figure \ref{fig:halo_cells}. On the left side, a block split in 4 is shown. Each
+sub-block lives on a different processor. On the right, one can see the
+artificial halo cells. After each iteration of the flow solver, the values of
+the halo cells are updated with their corresponding values of the other blocks
+(red arrows).
+
+\begin{figure}[H] \centering
+\includegraphics[width=0.7\textwidth]{halo_cells}
+    \caption{A block split in 4 (left) and its corresponding halo cells (right)
+            \cite{cfd_halo}.}
+    \label{fig:halo_cells}
+\end{figure}
+
+ADflow is capable of deploying second order schemes and thus needs two layers of
+halo cells. But the idea remains the same. As they are not always active, ADflow
+takes care of interpolating them by itself.
+
+\paragraph{Explicit boundary conditions}
+The concept of halo cells can also be used to prescribe the regular boundary
+conditions like a \textit{no-slip wall}. According to equation
+\ref{eq:sa_nu_wall_0}, the regular SA model needs a boundary condition of
+$\tilde \nu_{wall} = 0$. This means, the first halo is simply updated with the
+negative value of the first cell:
+
+\begin{equation}
+  \tilde \nu_{h} = - \tilde \nu_{1} \qquad \rightarrow \qquad
+  \tilde \nu_{wall} = \frac{\tilde \nu_{1} + \tilde \nu_{h}}{2} = 0
+  \label{eq:bc_halo}
+\end{equation}
+
+\noindent Where $\tilde \nu_{1}$ is the value of the first interior cell and
+$\tilde \nu_{h}$ is the halo cell.
+
+For the rough version, the boundary condition needs to be modified according to
+equation \ref{eq:bc_new}:
+
+\begin{equation}
+  \left( \frac{\partial \tilde \nu}{\partial n} \right) \equiv
+  \frac{\tilde \nu_{1} - \tilde \nu_{h}}{d} =
+  \frac{\tilde \nu_{wall}}{0.03 k_{s}}
+\end{equation}
+
+\noindent Replacing $\tilde \nu_{wall}$ with equation \ref{eq:bc_halo} and
+solving for $\tilde \nu_{h}$, one gets:
+
+\begin{equation}
+  \tilde \nu_{h} = \tilde \nu_{1} \frac{0.06 k_{s} - d}{0.06 k_{s} + d}
+\end{equation}
+
+\noindent The underlying assumption is, that the first cell to the wall is not
+skewed and its center is normal to the wall. But this is in general good practice
+and highly recommended for RANS meshes.
+
+
+\paragraph{Implicit boundary conditions}
+ADflow also has some implicit solvers, thus the implicit boundary conditions need to be changed.
+
+TBD!!!!
+
+\subsection{Automatic Differentiation}
+As described in \cite{cm1}, ADflow uses Automatic/Algorithmic Differentiation to
+compute the partial derivatives which are needed in the \textit{adjoint method}
+to compute the total derivatives of the functions of interest with respect to
+the design variables. The AD tool used is called \textit{tapenade}
+\cite{tapenade}. It is based on JAVA and directly differentiates Fortran source
+code. One provides the source code of a Fortran routine, defines the dependent
+output variable and the independent input variable with respect to which the
+derivative is requested. Tapenade then returns Fortran source code that
+computes this derivative.
+
+When the AD architecture for ADflow was set up, tapenade could not handle
+parallelization calls using the MPI\footnote{MPI stands for Message Passing
+Interface and handles the communication across different processors and
+computers when performing parallel computations.}. Thus the decision was made to
+split the whole AD in two parts: part (1) communicates data across different
+processors, i.e takes care of the parallelization; and part (2) that does the
+actual computation. This allows tapenade to differentiate the math heavy part
+and necessitates the developer to make sure the differentiated routines are
+called appropriately.
+
 
 \section{Verification}
 

@@ -375,6 +375,7 @@ to reflect the real $\nu_{t}^{+}$ behavior \cite{KALITZIN2005265} \cite{fluid_10
   \tilde \nu_{wall} = 0
   \qquad \qquad
   \tilde \nu_{farfield} = 3\nu_{\infty} :to: 5\nu_{\infty}
+  \label{eq:sa_nu_wall_0}
 \end{equation}
 
 \noindent And the constants are:
@@ -451,9 +452,12 @@ function $f_{v2}$ also needs to be modified:
 \noindent And finally, the boundary condition is replaced by:
 
 \begin{equation}
+  \label{eq:bc_new}
   \left( \frac{\partial \tilde \nu}{\partial n} \right)_{wall} =
   \frac{\tilde \nu_{wall}}{0.03k_s}
 \end{equation}
+
+\noindent Where $\partial n$ is along the normal of the wall.
 
 
 
