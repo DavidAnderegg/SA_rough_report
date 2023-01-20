@@ -115,6 +115,7 @@ complicated and only the broad context is described.
 
 
 \subsubsection{Assigning the block variable \texttt{ks}}
+\label{subsubsec:propagate_ks}
 To fill the block variable \texttt{ks} with the roughness value of the nearest
 surface, the before described walldistance computation is hijacked as follows:
 
@@ -262,14 +263,43 @@ parallelization calls using the MPI\footnote{MPI stands for Message Passing
 Interface and handles the communication across different processors and
 computers when performing parallel computations.}. Thus the decision was made to
 split the whole AD in two parts: part (1) communicates data across different
-processors, i.e takes care of the parallelization; and part (2) that does the
-actual computation. This allows tapenade to differentiate the math heavy part
-and necessitates the developer to make sure the differentiated routines are
-called appropriately.
+processors, i.e takes care of the parallelization; and part (2) does the actual
+computation. This allows tapenade to differentiate the math heavy part (2) and
+necessitates the developer to make sure the differentiated routines are called
+appropriately (1).
 
 
 \section{Verification}
+The verification of the SA changes is split into two parts: making sure the
+roughness values are propagated correctly into the volume cells and verifying SA
+rough does actually behave like a rough wall.
+
+\subsection{Roughness propagation}
+When assigning a roughness value to the surface, this value gets propagated to
+the volume cells as described in section \ref{subsubsec:propagate_ks}. This has
+to be tested, especially when running on multiple processors. To get a chance to
+do this, ADflow has been modified to write the \texttt{ks} values to the
+solution grid (if requested).
+
+\paragraph{Cube}
+The first test is a cube where each face is split into 9 parts. The center of
+each face has been prescribed a roughness value of $k_{s} = 1.0$. The rest of
+each face gets a value of $k_{s} = 0.1$. Figure \ref{fig:cube_ks_prop} shows the
+results.
+
+\begin{figure}[H] \centering
+\includegraphics[width=0.7\textwidth]{cube_ks_prop}
+    \caption{The surface (left) has been assigned $k_{s} = 0.1$ (blue) and the
+center $k_{s} = 1.0$ (red). Those values propagated through the volume mesh
+(right).}
+    \label{fig:cube_ks_prop}
+\end{figure}
+
+\paragraph{Cuboid}
+
 
 \subsection{SA rough}
+
+\section{Automated tests}
 
 \subsection{Gradients}
