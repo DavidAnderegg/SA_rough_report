@@ -284,18 +284,42 @@ solution grid (if requested).
 \paragraph{Cube}
 The first test is a cube where each face is split into 9 parts. The center of
 each face has been prescribed a roughness value of $k_{s} = 1.0$. The rest of
-each face gets a value of $k_{s} = 0.1$. Figure \ref{fig:cube_ks_prop} shows the
-results.
-
-\begin{figure}[H] \centering
-\includegraphics[width=0.7\textwidth]{cube_ks_prop}
-    \caption{The surface (left) has been assigned $k_{s} = 0.1$ (blue) and the
-center $k_{s} = 1.0$ (red). Those values propagated through the volume mesh
-(right).}
-    \label{fig:cube_ks_prop}
-\end{figure}
+each face gets a value of $k_{s} = 0.1$. Figure \ref{fig:cube_oid_ks_prop} shows
+the surface and the corresponding roughness values. This test exists as it easily
+verifiable that the propagation looks right.
 
 \paragraph{Cuboid}
+The main thing that could fail in this test is the correlation from the surface
+cell to the \texttt{gID} as described in section \ref{subsubsec:propagate_ks}.
+It is not possible to test this properly when the test case is symmetric. This
+necessitated the introduction of a cuboid where a random cell on the surface is
+made rough. This can be seen in figure \ref{fig:cube_oid_ks_prop}. The
+underlying assumption is that the search for the surface \texttt{gID} fails when
+the correlation is wrong. This has been observed in practice.
+
+All volume meshes in this report were generated using pyHyp \cite{Secco2021}. It
+reads a surface mesh and extrudes it into the third dimension. But it allways
+orients the internal block coordinates (\texttt{i}, \texttt{j} and \texttt{k})
+in the same direction such that the \texttt{kMin} face is allways the wall. The
+correlation of the surface cell to the \texttt{gID} is different for each block
+face. Thus this is a test with 6 different meshes where each block is rotated
+such that each face is the wall once.
+
+
+\begin{figure}[H] \centering
+\includegraphics[width=0.7\textwidth]{cube_oid_ks_prop}
+    \caption{Cube and cuboid for $k_{s}$ propagation test. Blue means
+$k_{s} = 0.1$ and red equals $k_{s} =1.0$.}
+    \label{fig:cube_oid_ks_prop}
+\end{figure}
+
+\paragraph{Overset cube}
+The highjacked subroutine for the wall distance calculation takes a slightly
+different path when overset meshes are used. To test it, the cube mesh from
+before was used. But it was extendend with a coarse Cartesian  background grid.
+ADflow uses the \textit{implicit hole cutting scheme} and thus decides by itself
+how to interpolate between those grids. As this was failing with the initial
+grid, it has been refined slightly.
 
 
 \subsection{SA rough}
