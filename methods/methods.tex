@@ -275,6 +275,7 @@ roughness values are propagated correctly into the volume cells and verifying SA
 rough does actually behave like a rough wall.
 
 \subsection{Roughness propagation}
+\label{subsec:roughness_prop}
 When assigning a roughness value to the surface, this value gets propagated to
 the volume cells as described in section \ref{subsubsec:propagate_ks}. This has
 to be tested, especially when running on multiple processors. To get a chance to
@@ -316,13 +317,63 @@ $k_{s} = 0.1$ and red equals $k_{s} =1.0$.}
 \paragraph{Overset cube}
 The highjacked subroutine for the wall distance calculation takes a slightly
 different path when overset meshes are used. To test it, the cube mesh from
-before was used. But it was extendend with a coarse Cartesian  background grid.
-ADflow uses the \textit{implicit hole cutting scheme} and thus decides by itself
+before was repurposed. It was extendend with a coarse Cartesian  background
+grid.  ADflow uses the \textit{implicit hole cutting scheme} to decide by itself
 how to interpolate between those grids. As this was failing with the initial
 grid, it has been refined slightly.
 
+\subsection{Grid Convergence}
 
-\subsection{SA rough}
+TBD
+
+\subsection{Comparisons}
+It is necessary to compare the SA rough implementation against theory and
+experiments. As it is hard to get experimental data, the \textit{flat plat a
+zero incidence} test case has been chosen for all comparisons. NASA maintains a
+website called \textit{turbulence modeling resource} \cite{rumsey_flat}. There,
+various formulations for different turbulence models may be found. Additionally
+it provides testcases, grids and validation data. The following grid-family with
+its corresponding boundary conditions was sourced from there (figure
+\ref{fig:plate_bc}). Table \ref{tab:plate_sizes} lists the different mesh sizes.
+
+\begin{figure}[H] \centering
+\includegraphics[width=0.7\textwidth]{plate_bc}
+    \caption{Boundary conditions and test case overview \cite{rumsey_flat}.}
+    \label{fig:plate_bc}
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{c r r}
+    Identifier      & \# of nodes   & \# of cells \\
+    \toprule
+    L4              & 1'800         & 816 \\
+    L3              & 6'860         & 3'264 \\
+    L2              & 26'772        & 13'056 \\
+    L1              & 105'764       & 52'224 \\
+    L0              & 420'420       & 208'896 \\
+
+  \end{tabular}
+  \caption{Mesh sizes used for testcases.}
+  \label{tab:plate_sizes}
+\end{table}
+
+\noindent The following cases were set up.
+
+\paragraph{Clean}
+The NASA TMR website \cite{rumsey_flat} provides numercial data on the skin
+friction coefficient ($c_{f}$) for a clean wall. The SA rough model with a
+surface roughness of $k_{s} = 0$ should match.
+
+\paragraph{SU2}
+SU2 is an open source solver \cite{su2} that has allready implemented SA rough.
+Therefore it was natural to compare both implementations.
+
+\paragraph{Acharya et al.}
+Acharya et al. did some experiments with flows of a flat plates over rough walls.
+
+
+TBD!!!!
 
 \section{Automated tests}
 
