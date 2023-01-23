@@ -376,5 +376,82 @@ Acharya et al. did some experiments with flows of a flat plates over rough walls
 TBD!!!!
 
 \section{Automated tests}
+ADflow uses automated tests to make sure no changes are breaking existing
+features. This concept is know as \textit{regression tests}. Those tests may be
+run for multiple times a day and their goal is to catch mistakes. Thus it makes
+sense to speed them up as fast as possible. Because of that, the testcases have
+really coarse meshes and their solution is most likely not physical; but this
+does not matter.
 
-\subsection{Gradients}
+As ADflow allready has some cases, it was easy to adapt and modify some of them
+for the SA rough modification. The following new cases were introduced:
+
+
+\begin{table}[H]
+  \centering
+  \begingroup
+  \renewcommand{\arraystretch}{1.5} % adjust vertical spacing
+  \begin{tabularx}{\textwidth}{lX}
+    Test-Name                                     & Comment \\
+    \toprule
+    \texttt{TestAdjoint\_5\_Rough\_SA\_wing}      & 3D mesh of a wing whose
+    surface is totally rough ($k_{s} = 0.001$).\\
+
+    $\rightarrow$\texttt{rest\_residuals}        & Make sure ADflow converges to
+    the same solution as a pre-trained reference file.\\
+
+    $\rightarrow$ \texttt{rest\_adjont} & Make sure the adjoint vectors converge
+    to the same solution as a pre-trained reference file.\\
+
+    \texttt{TestCmplxStep\_5\_Rough\_SA\_wing}    & Same test as before, but use
+    complex step. \\
+
+    $\rightarrow$ \texttt{cmplx\_test\_aero\_dvs} & Make sure trained adjoint
+    values from before are consistent with complex step (only aerodynamic design
+    variables).\\
+
+    $\rightarrow$\texttt{cmplx\_test\_geom\_dvs} & Make sure trained adjoint
+    values from before are consistent with complex step (only geometric design
+    variables).\\
+
+    \midrule
+
+    \texttt{TestFunctionals\_9\_Rough\_SA\_wing} & 3D mesh of a wing whose
+    surface is totally rough ($k_{s} = 0.001$).\\
+
+    $\rightarrow$\texttt{rest\_residuals}        & Make sure ADflow converges to
+    the same solution as a pre-trained reference file.\\
+
+    $\rightarrow$\texttt{rest\_restart\_read}    & Make sure restarts are possible.\\
+
+    $\rightarrow$\texttt{rest\_functions}        & Make sure function values
+    ($C_{l}$, $C_{d}$, etc.) are the same as a pre-trained reference file.\\
+
+    $\rightarrow$\texttt{test\_forces\_and\_tractions} & Make sure tractions and
+    forces are the same as a pre-trained reference file.\\
+
+    $\rightarrow$\texttt{test\_jac\_vec\_prod\_fwd} & Make sure partial
+    derivatives calculated using the forward mode are consistent with reference
+    file. \\
+
+    $\rightarrow$\texttt{test\_jac\_vec\_prod\_bwd} & Make sure partial
+    derivatives calculated using the backwards mode are consistent with reference
+    file. \\
+
+    $\rightarrow$\texttt{test\_dot\_products} & Make sure the forward and
+    backwards Algorithmic Differentiation is consistent using the dot-product test. \\
+
+    \midrule
+
+    \texttt{TestFunctionals\_10\_Rough\_SA\_wing} & Same tests as in
+    \texttt{TestFunctionals\_9\_Rough\_SA\_wing}, but the reference file is from a
+    previous testcase. This should make sure SA rough with $k_{s} = 0$ behaves like
+    the standard SA model. \\
+
+  \bottomrule
+
+  \end{tabularx}
+  \endgroup
+  \caption{Mesh sizes used for testcases.}
+  \label{tab:plate_sizes}
+\end{table}
