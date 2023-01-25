@@ -6,8 +6,8 @@ of words about the architecture of ADflow are needed.
 This solver only reads \textit{structured grids}, this means all state and grid
 variables can be represented in a ``three dimensional table''. One can also think
 of a 3d array. This organization is called the \textit{block architecture}. The
-index of the block variables are \texttt{i}, \texttt{j} and \texttt{k} for the
-x, y and z directions respectively.
+index of the block variables are \texttt{i}, \texttt{j} and \texttt{k}. Each
+block has 6 faces. They are identified with \texttt{iMin}, \texttt{iMax}, etc.
 
 \paragraph{Boundary Conditions}
 ADflow saves the values of the boundary conditions in a similar way as the block
@@ -18,15 +18,15 @@ cells are different entities.
 
 \paragraph{Global Cell ID}
 ADflow assigns a \textit{global cell id} (\texttt{gID} to each volume cell. The
-index is an continuously increasing integer that starts at \textbf{0}. It is
+index is a continuously increasing integer that starts at \textbf{0}. It is
 applied in a systematic manner that will not be explained further.
 
 \paragraph{Block splitting}
 ADflow is capable of solving the governing equations by parallel means. To make
 this possible, the whole mesh is split in different blocks. Each processor then
-only loads its corresponding block. It is important to realize that no single
-processor has access to the whole volume or surface cells\footnote{Assuming more
-than one processor is used}.
+only loads its corresponding sub-block. It is important to realize that no
+single processor has access to the whole volume or surface
+cells\footnote{Assuming more than one processor is used}.
 
 \subsection{General thoughts}
 This modifications requires a little bit more RAM and cpu power. It could also
@@ -130,8 +130,8 @@ the CGNS\footnote{CGNS stands for CFD General Notation System and is a format
 for meshes and their solutions. It is the primary format that ADflow interacts
 with.} file once the walldistance has already been calculated. Thus it is not
 possible to do it when step (2) is done. ADflow has some helper functions that
-allows to overwrite the values of the boundary conditions which are saved in the
-CGNS file. Having a separate subroutine to assign \texttt{ks} allows to also use
+allow to overwrite the values of the boundary conditions which are saved in the
+CGNS file. Having a separate subroutine to assign \texttt{ks} allows us to also use
 those helper functions for the wall roughness.
 \end{enumerate}
 
@@ -139,14 +139,16 @@ those helper functions for the wall roughness.
 in more detail:
 
 \begin{enumerate}[label=\Alph*]
-  \item Each processor creates two lists: (a) the roughness values of the
-surface cells on current processor and (b) the corresponding \texttt{gID}.
+  \item Each processor creates two lists: List (a) holds the roughness values of
+the surface cells on current processor and list (b) holds the corresponding
+\texttt{gID}. To calculate the \texttt{gID}, the surface cell must be related to
+the volume cell.
 
   \item Then those two lists are gathered on all processors. This means, every
-processor has a list ($\alpha$) of all surface roughness values and ($\beta$) of
-all corresponding \texttt{gID}. This does also not scale. But this constraint
-has been violated before (in \texttt{buildClusterWalls}) and thus the totally
-required RAM is not increased significantly.
+processor has a list ($\alpha$) of all surface roughness values and a list
+($\beta$) of all corresponding \texttt{gID}. This does also not scale. But this
+constraint has been violated before (in \texttt{buildClusterWalls}) and thus the
+totally required RAM is not increased significantly.
 
 \item Now, each processor iterates through its volume cells and requests the
 \texttt{gID} from \texttt{nearestWallCellInd}. Then it searches list ($\beta$)
@@ -221,12 +223,12 @@ negative value of the first cell:
 \noindent Where $\tilde \nu_{1}$ is the value of the first interior cell and
 $\tilde \nu_{h}$ is the halo cell.
 
-For the rough version, the boundary condition needs to be modified according to
+For the rough version, the boundary conditions need to be modified according to
 equation \ref{eq:bc_new}:
 
 \begin{equation}
   \left( \frac{\partial \tilde \nu}{\partial n} \right) \equiv
-  \frac{\tilde \nu_{1} - \tilde \nu_{h}}{d} =
+  \frac{\tilde \nu_{1} - \tilde \nu_{h}}{2d} =
   \frac{\tilde \nu_{wall}}{0.03 k_{s}}
 \end{equation}
 
@@ -234,7 +236,7 @@ equation \ref{eq:bc_new}:
 solving for $\tilde \nu_{h}$, one gets:
 
 \begin{equation}
-  \tilde \nu_{h} = \tilde \nu_{1} \frac{0.06 k_{s} - d}{0.06 k_{s} + d}
+  \tilde \nu_{h} = \tilde \nu_{1} \frac{0.03 k_{s} - d}{0.03 k_{s} + d}
 \end{equation}
 
 \noindent The underlying assumption is, that the first cell to the wall is not
@@ -259,20 +261,17 @@ derivative is requested. Tapenade then returns Fortran source code that
 computes this derivative.
 
 When the AD architecture for ADflow was set up, tapenade could not handle
-parallelization calls using the MPI\footnote{MPI stands for Message Passing
+parallelization calls using MPI\footnote{MPI stands for Message Passing
 Interface and handles the communication across different processors and
 computers when performing parallel computations.}. Thus the decision was made to
 split the whole AD in two parts: part (1) communicates data across different
 processors, i.e takes care of the parallelization; and part (2) does the actual
 computation. This allows tapenade to differentiate the math heavy part (2) and
 necessitates the developer to make sure the differentiated routines are called
-appropriately (1).
+appropriately in part (1).
 
 
 \section{Verification}
-The verification of the SA changes is split into two parts: making sure the
-roughness values are propagated correctly into the volume cells and verifying SA
-rough does actually behave like a rough wall.
 
 \subsection{Roughness propagation}
 \label{subsec:roughness_prop}
@@ -286,26 +285,37 @@ solution grid (if requested).
 The first test is a cube where each face is split into 9 parts. The center of
 each face has been prescribed a roughness value of $k_{s} = 1.0$. The rest of
 each face gets a value of $k_{s} = 0.1$. Figure \ref{fig:cube_oid_ks_prop} shows
-the surface and the corresponding roughness values. This test exists as it easily
-verifiable that the propagation looks right.
+the surface and the corresponding roughness values. This test makes it easy to
+verify that the propagation is sound.
+
+\paragraph{Overset cube}
+The highjacked subroutine for the wall distance calculation takes a slightly
+different path when overset meshes are used. To test it, the cube mesh from
+before was repurposed. It was extendend with a coarse cartesian  background
+grid.  ADflow uses the \textit{implicit hole cutting scheme} to decide by itself
+how to interpolate between those grids. This was failing with the initial
+cube grid. To make it work, the grid had to be refined slightly.
 
 \paragraph{Cuboid}
-The main thing that could fail in this test is the correlation from the surface
-cell to the \texttt{gID} as described in section \ref{subsubsec:propagate_ks}.
-It is not possible to test this properly when the test case is symmetric. This
-necessitated the introduction of a cuboid where a random cell on the surface is
-made rough. This can be seen in figure \ref{fig:cube_oid_ks_prop}. The
-underlying assumption is that the search for the surface \texttt{gID} fails when
-the correlation is wrong. This has been observed in practice.
+Testing the conversion from the surface cell to the global cell ID
+(\texttt{gid}) is not possible for a symmetric case. Mixing up \texttt{i} and
+\texttt{j} would still yield the same result for the cube. To test this
+properly, a cuboid is introduced. One each face, a random cell is made rough
+($k_{s} = 1.0$). As before, the rest of the face gets a roughness value of
+$k_{s} = 0.1$. This setup can be seen in figure \ref{fig:cube_oid_ks_prop}.
+The basic idea for this test is as follows: When there is a \texttt{i} and
+\texttt{j} mixup, the calculation of the \texttt{gID} yields a number that does
+not exist. Thus the mixup results in failing code. This behavior has been
+observed as there was a mixup initially.
 
 All volume meshes in this report were generated using pyHyp \cite{Secco2021}. It
 reads a surface mesh and extrudes it into the third dimension. But it allways
 orients the internal block coordinates (\texttt{i}, \texttt{j} and \texttt{k})
 in the same direction such that the \texttt{kMin} face is allways the wall. The
 correlation of the surface cell to the \texttt{gID} is different for each block
-face. Thus this is a test with 6 different meshes where each block is rotated
-such that each face is the wall once.
-
+face. To test all faces, 6 different meshes where created. Each mesh has the
+same coordinates, but the internal block orientation was changed such that each
+face is the wall once.
 
 \begin{figure}[H] \centering
 \includegraphics[width=0.7\textwidth]{cube_oid_ks_prop}
@@ -314,19 +324,7 @@ $k_{s} = 0.1$ and red equals $k_{s} =1.0$.}
     \label{fig:cube_oid_ks_prop}
 \end{figure}
 
-\paragraph{Overset cube}
-The highjacked subroutine for the wall distance calculation takes a slightly
-different path when overset meshes are used. To test it, the cube mesh from
-before was repurposed. It was extendend with a coarse Cartesian  background
-grid.  ADflow uses the \textit{implicit hole cutting scheme} to decide by itself
-how to interpolate between those grids. As this was failing with the initial
-grid, it has been refined slightly.
-
-\subsection{Grid Convergence}
-
-TBD
-
-\subsection{Comparisons}
+\subsection{Solution comparisons}
 It is necessary to compare the SA rough implementation against theory and
 experiments. As it is hard to get experimental data, the \textit{flat plat a
 zero incidence} test case has been chosen for all comparisons. NASA maintains a
@@ -361,31 +359,53 @@ its corresponding boundary conditions was sourced from there (figure
 \noindent The following cases were set up.
 
 \paragraph{Clean}
-The NASA TMR website \cite{rumsey_flat} provides numercial data on the skin
-friction coefficient ($c_{f}$) for a clean wall. The SA rough model with a
-surface roughness of $k_{s} = 0$ should match.
+The NASA TMR website \cite{rumsey_flat} provides numerical data on the skin
+friction coefficient ($c_{f}$) for a clean wall. This data is used to compare it
+against SA rough with a surface roughness of $k_{s} = 0$.
 
 \paragraph{SU2}
 SU2 is an open source solver \cite{su2} that has allready implemented SA rough.
-Therefore it was natural to compare both implementations.
+This testcase uses the grids from table \ref{tab:plate_sizes} and the boundary
+conditions from \ref{fig:plate_bc}. The SA rough implementation from ADflow is
+compared against the SA rough implementation from SU2.
 
 \paragraph{Acharya et al.}
-Acharya et al. did some experiments with flows of a flat plates over rough walls.
+Acharya et al. provide some experimental data for flows with surface roughness
+\cite{Acharya1986}. The setup is not the same as explained in figure
+\ref{fig:plate_bc}. But the same meshes are used and the boundary conditions
+adjusted as follows:
 
+TBD.
 
-TBD!!!!
+\paragraph{Blanchard}
+For his PhD thesis, Blanchard performed some experiments with flows over rough
+walls. The source is written in french and was not easily available. The data
+for the comparisons was extracted from \cite{sa_rough}. The same meshes as in
+table \ref{tab:plate_sizes} were used, but the boundary conditions were adapted
+as follows:
+
+TBD
 
 \section{Automated tests}
-ADflow uses automated tests to make sure no changes are breaking existing
-features. This concept is know as \textit{regression tests}. Those tests may be
-run for multiple times a day and their goal is to catch mistakes. Thus it makes
-sense to speed them up as fast as possible. Because of that, the testcases have
-really coarse meshes and their solution is most likely not physical; but this
-does not matter.
+ADflow uses automated tests to catch errors and breaking changes. They are run
+automatically when a new pull request has been created on its github page. Most
+of the tests are \textit{regression tests}, but a couple of \textit{unit tests}
+are also to be found.
 
-As ADflow allready has some cases, it was easy to adapt and modify some of them
-for the SA rough modification. The following new cases were introduced:
+The idea of \textit{Regression tests} is to catch breaking changes. The are
+usually (in this context) a typical CFD case with a really coarse mesh. Once a
+feature is completed, a reference file is trained with this case. This reference
+file stores some identifiers of the cfd solution to a high precision. The test
+then runs the same CFD case and compares if the solution matches the reference
+file.
 
+The purpose of \textit{unit tests} is to test a feature while it is developed.
+It usually test a function with defined inputs and expects a defined output.
+
+In ADflow, there is no clear cut between those two types. They are mostly
+regression, but also a bit unit tests. To test the SA rough changes, a couple
+allready existing tests were modified and adapted. Table \ref{tab:tests} gives
+an overview.
 
 \begin{table}[H]
   \centering
@@ -397,11 +417,13 @@ for the SA rough modification. The following new cases were introduced:
     \texttt{TestAdjoint\_5\_Rough\_SA\_wing}      & 3D mesh of a wing whose
     surface is totally rough ($k_{s} = 0.001$).\\
 
-    $\rightarrow$\texttt{rest\_residuals}        & Make sure ADflow converges to
-    the same solution as a pre-trained reference file.\\
+    $\rightarrow$ \texttt{rest\_residuals}        & Make sure ADflow converges to
+    the same solution as reference file.\\
 
     $\rightarrow$ \texttt{rest\_adjont} & Make sure the adjoint vectors converge
-    to the same solution as a pre-trained reference file.\\
+    to the same solution as a reference file.\\
+
+    \midrule
 
     \texttt{TestCmplxStep\_5\_Rough\_SA\_wing}    & Same test as before, but use
     complex step. \\
@@ -410,7 +432,7 @@ for the SA rough modification. The following new cases were introduced:
     values from before are consistent with complex step (only aerodynamic design
     variables).\\
 
-    $\rightarrow$\texttt{cmplx\_test\_geom\_dvs} & Make sure trained adjoint
+    $\rightarrow$ \texttt{cmplx\_test\_geom\_dvs}& Make sure trained adjoint
     values from before are consistent with complex step (only geometric design
     variables).\\
 
@@ -419,26 +441,26 @@ for the SA rough modification. The following new cases were introduced:
     \texttt{TestFunctionals\_9\_Rough\_SA\_wing} & 3D mesh of a wing whose
     surface is totally rough ($k_{s} = 0.001$).\\
 
-    $\rightarrow$\texttt{rest\_residuals}        & Make sure ADflow converges to
-    the same solution as a pre-trained reference file.\\
+    $\rightarrow$ \texttt{rest\_residuals}        & Make sure ADflow converges to
+    the same solution as reference file.\\
 
-    $\rightarrow$\texttt{rest\_restart\_read}    & Make sure restarts are possible.\\
+    $\rightarrow$ \texttt{rest\_restart\_read}    & Make sure restarts are possible.\\
 
-    $\rightarrow$\texttt{rest\_functions}        & Make sure function values
-    ($C_{l}$, $C_{d}$, etc.) are the same as a pre-trained reference file.\\
+    $\rightarrow$ \texttt{rest\_functions}        & Make sure function values
+    ($C_{l}$, $C_{d}$, etc.) are the same as in reference file.\\
 
-    $\rightarrow$\texttt{test\_forces\_and\_tractions} & Make sure tractions and
-    forces are the same as a pre-trained reference file.\\
+    $\rightarrow$ \texttt{test\_forces\_and\_tractions} & Make sure tractions and
+    forces are the same as in reference file.\\
 
-    $\rightarrow$\texttt{test\_jac\_vec\_prod\_fwd} & Make sure partial
+    $\rightarrow$ \texttt{test\_jac\_vec\_prod\_fwd} & Make sure partial
     derivatives calculated using the forward mode are consistent with reference
     file. \\
 
-    $\rightarrow$\texttt{test\_jac\_vec\_prod\_bwd} & Make sure partial
+    $\rightarrow$ \texttt{test\_jac\_vec\_prod\_bwd} & Make sure partial
     derivatives calculated using the backwards mode are consistent with reference
     file. \\
 
-    $\rightarrow$\texttt{test\_dot\_products} & Make sure the forward and
+    $\rightarrow$ \texttt{test\_dot\_products} & Make sure the forward and
     backwards Algorithmic Differentiation is consistent using the dot-product test. \\
 
     \midrule
@@ -452,6 +474,6 @@ for the SA rough modification. The following new cases were introduced:
 
   \end{tabularx}
   \endgroup
-  \caption{Mesh sizes used for testcases.}
-  \label{tab:plate_sizes}
+  \caption{Newly introduced tests for SA rough.}
+  \label{tab:tests}
 \end{table}
