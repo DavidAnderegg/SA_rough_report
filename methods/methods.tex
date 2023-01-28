@@ -281,14 +281,14 @@ to be tested, especially when running on multiple processors. To get a chance to
 do this, ADflow has been modified to write the \texttt{ks} values to the
 solution grid (if requested).
 
-\paragraph{Cube}
+\subsubsection{Cube}
 The first test is a cube where each face is split into 9 parts. The center of
 each face has been prescribed a roughness value of $k_{s} = 1.0$. The rest of
 each face gets a value of $k_{s} = 0.1$. Figure \ref{fig:cube_oid_ks_prop} shows
 the surface and the corresponding roughness values. This test makes it easy to
 verify that the propagation is sound.
 
-\paragraph{Overset cube}
+\subsubsection{Overset cube}
 The highjacked subroutine for the wall distance calculation takes a slightly
 different path when overset meshes are used. To test it, the cube mesh from
 before was repurposed. It was extendend with a coarse cartesian  background
@@ -296,7 +296,7 @@ grid.  ADflow uses the \textit{implicit hole cutting scheme} to decide by itself
 how to interpolate between those grids. This was failing with the initial
 cube grid. To make it work, the grid had to be refined slightly.
 
-\paragraph{Cuboid}
+\subsubsection{Cuboid}
 Testing the conversion from the surface cell to the global cell ID
 (\texttt{gid}) is not possible for a symmetric case. Mixing up \texttt{i} and
 \texttt{j} would still yield the same result for the cube. To test this
@@ -324,7 +324,8 @@ $k_{s} = 0.1$ and red equals $k_{s} =1.0$.}
     \label{fig:cube_oid_ks_prop}
 \end{figure}
 
-\subsection{Solution comparisons}
+\subsection{Flapt plate at zero incidence}
+\label{subsec:flat_plate_exp}
 It is necessary to compare the SA rough implementation against theory and
 experiments. As it is hard to get experimental data, the \textit{flat plat a
 zero incidence} test case has been chosen for all comparisons. NASA maintains a
@@ -358,18 +359,20 @@ its corresponding boundary conditions was sourced from there (figure
 
 \noindent The following cases were set up.
 
-\paragraph{Clean}
+\subsubsection{Grid Convergence}
+
+\subsubsection{Clean}
 The NASA TMR website \cite{rumsey_flat} provides numerical data on the skin
 friction coefficient ($c_{f}$) for a clean wall. This data is used to compare it
 against SA rough with a surface roughness of $k_{s} = 0$.
 
-\paragraph{SU2}
+\subsubsection{SU2}
 SU2 is an open source solver \cite{su2} that has allready implemented SA rough.
 This testcase uses the grids from table \ref{tab:plate_sizes} and the boundary
 conditions from \ref{fig:plate_bc}. The SA rough implementation from ADflow is
 compared against the SA rough implementation from SU2.
 
-\paragraph{Acharya et al.}
+\subsubsection{Acharya et al.}
 Acharya et al. provide some experimental data for flows with surface roughness
 \cite{Acharya1986}. The setup is not the same as explained in figure
 \ref{fig:plate_bc}. But the same meshes are used and the boundary conditions
@@ -377,7 +380,7 @@ adjusted as follows:
 
 TBD.
 
-\paragraph{Blanchard}
+\subsubsection{Blanchard}
 For his PhD thesis, Blanchard performed some experiments with flows over rough
 walls. The source is written in french and was not easily available. The data
 for the comparisons was extracted from \cite{sa_rough}. The same meshes as in
