@@ -171,3 +171,99 @@ observable.
 
 
 \section{Automated tests}
+Reporting the results of the automated tests is easiest done in tabular form.
+Thus, take a look at table \ref{tab:tests_results}.
+
+
+\begingroup
+\renewcommand{\arraystretch}{1.5} % adjust vertical spacing
+\begin{xltabular}{\textwidth}{lX}
+    \toprule
+    Test-Name                                     & Comment \\
+    \toprule
+    \endhead
+    \texttt{TestAdjoint\_5\_Rough\_SA\_wing}      & \\
+
+    $\rightarrow$ \texttt{rest\_residuals}        & Passes to an absolute and
+    relative tolerance of \num{1e-10}. \\
+
+    $\rightarrow$ \texttt{rest\_adjoint}           & Passes to an absolute and
+    relative tolerance of \num{1e-10}. \\
+
+    \midrule
+
+    \texttt{TestCmplxStep\_5\_Rough\_SA\_wing}    & \\
+
+    $\rightarrow$ \texttt{cmplx\_test\_aero\_dvs} & Passes to an absolute
+tolerance of \num{5e-10} and a relative tolerance of \num{1e-8}. \\
+
+    $\rightarrow$ \texttt{cmplx\_test\_geom\_dvs}& Fails with an absolute and relative
+    tolerance of \num{5e-9} as follows\footnote{All functionals are only listed
+      for \textit{span} as it does not provide much more additional insight.}:
+
+    \begingroup
+    \renewcommand{\arraystretch}{1.0} % adjust vertical spacing
+    \begin{tabular}{l l r r}
+      Functional & design var. & abs. tol.      & rel. tol. \\
+      \toprule
+      $C_{l}$    & span        & \num{1.64e-8}  & \num{3.77e-7} \\
+      $C_{d}$    & span        & \num{9.39e-9}  & \num{6.44e-6} \\
+      $C_{mz}$   & span        & \num{2.62e-8}  & \num{4.10e-7} \\
+      lift       & span        & \num{6.67e-3}  & \num{3.77e-7} \\
+      drag       & span        & \num{4.42e-4}  & \num{4.73e-7} \\
+      $C_{l}$    & twist       & \num{7.21e-9}  & \num{2.92e-7} \\
+      $C_{l}$    & shape       & \num{2.29e-7}  & \num{3.45e-4} \\
+
+    \end{tabular}
+    \endgroup
+
+    \\
+
+    \midrule
+
+    \texttt{TestFunctionals\_9\_Rough\_SA\_wing} & \\
+
+    $\rightarrow$ \texttt{rest\_residuals}        & Passes to an absolute and
+    relative tolerance of \num{1e-10}. \\
+
+    $\rightarrow$ \texttt{rest\_restart\_read}    & Passes to an absolute and
+    relative tolerance of \num{1e-10}. \\
+
+    $\rightarrow$ \texttt{rest\_functions}        & Passes to an absolute and
+    relative tolerance of \num{1e-9}. \\
+
+    $\rightarrow$ \texttt{test\_forces\_and\_tractions} & Passes to an absolute and
+    relative tolerance of \num{1e-10}. \\
+
+    $\rightarrow$ \texttt{test\_jac\_vec\_prod\_fwd} & Passes to an absolute and
+    relative tolerance of \num{5e-9}. \\
+
+    $\rightarrow$ \texttt{test\_jac\_vec\_prod\_bwd} & Passes to an absolute and
+    relative tolerance of \num{1e-10}. \\
+
+    $\rightarrow$ \texttt{test\_dot\_products} & Passes to an absolute and
+    relative tolerance of \num{1e-10}. \\
+
+    \midrule
+
+    \texttt{TestFunctionals\_10\_Rough\_SA\_rans\_tut\_wing} & All tests pass.
+    The tolerances are the same as for
+    \texttt{TestFunctionals\_9\_Rough\_SA\_wing} listed above.\\
+
+  \bottomrule
+
+  \caption{Results for automated tests.}
+  \label{tab:tests_results}
+\end{xltabular}
+\endgroup
+
+
+\noindent All tests passing except for the geometric design variables in
+\texttt{TestCmplxStep\_5\_Rough\_SA\_wing} indicates that there is something
+wrong with the Automatic Differentiation. The author has a strong suspicion on
+what it might be. But to fix it, a rewrite of much of the code would be
+necessary. As the deadline for this project is approaching fast, it is not
+possible to commit to such a big change that late into the project.
+
+Thus, the decision was made to keep the bug, report and document it properly and
+to fix it in the future.

@@ -334,6 +334,8 @@ various formulations for different turbulence models may be found. Additionally
 it provides testcases, grids and validation data. The following grid-family with
 its corresponding boundary conditions was sourced from there (figure
 \ref{fig:plate_bc}). Table \ref{tab:plate_sizes} lists the different mesh sizes.
+Except for the grid convergence study, all simulations were done using the
+finest grid.
 
 \begin{figure}[H] \centering
 \includegraphics[width=0.7\textwidth]{plate_bc}
@@ -361,33 +363,99 @@ its corresponding boundary conditions was sourced from there (figure
 
 \subsubsection{Grid Convergence}
 
+TBD!!!!
+
 \subsubsection{Clean}
 The NASA TMR website \cite{rumsey_flat} provides numerical data on the skin
-friction coefficient ($c_{f}$) for a clean wall. This data is used to compare it
-against SA rough with a surface roughness of $k_{s} = 0$.
+friction coefficient ($c_{f}$) for a clean wall. This data is used to verify SA
+rough with a surface roughness of $k_{s} = 0$. The following table lists the
+flow conditions used.
 
-\subsubsection{SU2}
-SU2 is an open source solver \cite{su2} that has allready implemented SA rough.
-This testcase uses the grids from table \ref{tab:plate_sizes} and the boundary
-conditions from \ref{fig:plate_bc}. The SA rough implementation from ADflow is
-compared against the SA rough implementation from SU2.
+\begin{table}[H]
+  \centering
+  \begin{tabular}{l S[table-format=3.3] l}
+    \toprule
+    Temperature         &   300     & \degree K \\
+    Pressure            &   1013   & hPa \\
+    Inlet velocity      &  78.544   & m/s \\
+    Surface roughness   &   0       & m \\
+    \bottomrule
+  \end{tabular}
+  \caption{Flow conditions for the clean case.}
+  \label{tab:plate_sizes}
+\end{table}
 
-\subsubsection{Acharya et al.}
-Acharya et al. provide some experimental data for flows with surface roughness
-\cite{Acharya1986}. The setup is not the same as explained in figure
-\ref{fig:plate_bc}. But the same meshes are used and the boundary conditions
-adjusted as follows:
-
-TBD.
 
 \subsubsection{Blanchard}
 For his PhD thesis, Blanchard performed some experiments with flows over rough
-walls. The source is written in french and was not easily available. The data
-for the comparisons was extracted from \cite{sa_rough}. The same meshes as in
-table \ref{tab:plate_sizes} were used, but the boundary conditions were adapted
-as follows:
+walls. The source is written in french and was not available. The data
+for the comparison was extracted from \cite{sa_rough}. Only skin friction
+coefficients for one testcase could be obtained. \cite{sa_rough} estimates
+$k_{s}^{+}$ to be around $150$. The same meshes as in table \ref{tab:plate_sizes}
+were used, but the flow conditions were adapted as follows:
 
-TBD
+\begin{table}[H]
+  \centering
+  \begin{tabular}{l S[table-format=3.6] l}
+    \toprule
+    Temperature               &   288     & \degree K \\
+    Pressure                  &   1013   & hPa \\
+    Inlet velocity            &      45   & m/s \\
+    Surface roughness 1       & 0         & m \\
+    Surface roughness 2       & 0.001095  & m \\
+    \bottomrule
+  \end{tabular}
+  \caption{Flow conditions for the blanchard case.}
+  \label{tab:plate_sizes}
+\end{table}
+
+
+\subsubsection{Acharya et al.}
+Acharya et al. provide some experimental data for flows with surface roughness
+\cite{Acharya1986}. Skin frictions coefficients could be obtained for two
+testcases. For the last case, a mean velocity profile was also available.
+\cite{sa_rough} estimates $k_{s}^{+}$ to be around $25$ for the first testcase
+and approximately $70$ for the second. The same meshes as before were use, but the flow conditions were adapted as follows:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{l S[table-format=3.5] l}
+    \toprule
+    Temperature         &   288     & \degree K \\
+    Pressure            &   1013   & hPa \\
+    Inlet velocity      &      19   & m/s \\
+    Surface roughness 1 &        0  & m \\
+    Surface roughness 2 &   0.0005  & m \\
+    Surface roughness 3 &   0.00205  & m \\
+    \bottomrule
+  \end{tabular}
+  \caption{Flow conditions for the ancharya case.}
+  \label{tab:plate_sizes}
+\end{table}
+
+
+\subsubsection{SU2}
+SU2 is an open source solver \cite{su2} that has allready implemented SA rough.
+It is used to compare the SA rough implementation of ADflow against data from a
+different solver. The same meshes were used with the following flow conditions:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{l S[table-format=3.4] l}
+    \toprule
+    Temperature         &   300     & \degree K \\
+    Pressure            &   1013   & hPa \\
+    Inlet velocity      &  78.544   & m/s \\
+    Surface roughness 1 &   0       & m \\
+    Surface roughness 2 &   0.0001       & m \\
+    Surface roughness 3 &   0.001       & m \\
+    \bottomrule
+  \end{tabular}
+  \caption{Flow conditions for the SU2 case.}
+  \label{tab:plate_sizes}
+\end{table}
+
+
 
 \section{Automated tests}
 ADflow uses automated tests to catch errors and breaking changes. They are run
@@ -403,27 +471,87 @@ then runs the same CFD case and compares if the solution matches the reference
 file.
 
 The purpose of \textit{unit tests} is to test a feature while it is developed.
-It usually test a function with defined inputs and expects a defined output.
+It usually tests a function with defined inputs and expects a defined output.
 
 In ADflow, there is no clear cut between those two types. They are mostly
-regression, but also a bit unit tests. To test the SA rough changes, a couple
-allready existing tests were modified and adapted. Table \ref{tab:tests} gives
-an overview.
+regression, but also a bit unit tests.
+
+\subsection{Test setup}
+To test the SA rough changes, an allready existing test setup was modified. It
+is based on an wing using the transonic airfoil \textit{RAE 2822}. The wing is
+swept and might resemble a simplified airliner wing. As ADflow is used in
+optimizations, the gradients for various design variables need to be tested.
+Figure \ref{fig:test_setup} shows the coarse surface mesh and the
+FFD\footnote{FFD stands for Free Form Deformation and is a parametrization
+technique.} points. Table \ref{tab:test_dvs} lists the design variables used.
+Table \ref{tab:test_flowconditions} lists the flow conditions and mesh size.
+
+\begin{figure}[H] \centering
+  \includegraphics[width=\textwidth]{test_setup}
+  \caption{Surface mesh (blue) and FFD points (green) for the automated test setup.}
+  \label{fig:test_setup}
+\end{figure}
+
 
 \begin{table}[H]
   \centering
-  \begingroup
-  \renewcommand{\arraystretch}{1.5} % adjust vertical spacing
-  \begin{tabularx}{\textwidth}{lX}
+  \begin{tabular}{l l l}
+    \toprule
+    Name  & Type & Comment \\
+    \toprule
+    shape   & geometric   & Local pertubations of FFD points. \\
+    twist   & geometric   & Twisting of wing at each FFD-section. \\
+    span    & geometric   & Length of the wing. \\
+    alpha   & aerodynamic & Angle of attack. \\
+    beta    & aerodynamic & Slip angle. \\
+    mach    & aerodynamic & Mach number. \\
+    P       & aerodynamic & Pressure. \\
+    T       & aerodynamic & Temperature. \\
+    xRef    & aerodynamic & X location of reference point for moment calculation etc.\\
+    yRef    & aerodynamic & Y location of reference point for moment calculation etc.\\
+    zRef    & aerodynamic & Z location of reference point for moment calculation etc.\\
+    \bottomrule
+  \end{tabular}
+  \caption{Design variables for automated test setup.}
+  \label{tab:test_dvs}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{l S[table-format=3.4] l}
+    \toprule
+    Specific gas constant & 287.87& J / (kg K) \\
+    Pressure            &   200   & hPa \\
+    Temperature         &   220   & \degree K \\
+    Alpha               &    1.8  & \degree \\
+    Beta                &    0    & \degree \\
+    Mach                &    0.8  & - \\
+    Mesh node count     &   30375 & - \\
+    Mesh cell count     &   24192 & - \\
+    \bottomrule
+  \end{tabular}
+  \caption{Flow conditions for the automated test setup.}
+  \label{tab:test_flowconditions}
+\end{table}
+
+
+\subsection{Introduced tests}
+The following table \ref{tab:tests} lists all newly introduces tests.
+
+\begingroup
+\renewcommand{\arraystretch}{1.5} % adjust vertical spacing
+\begin{xltabular}{\textwidth}{lX}
+    \toprule
     Test-Name                                     & Comment \\
     \toprule
-    \texttt{TestAdjoint\_5\_Rough\_SA\_wing}      & 3D mesh of a wing whose
-    surface is totally rough ($k_{s} = 0.001$).\\
+    \endhead
+    \texttt{TestAdjoint\_5\_Rough\_SA\_wing}      & Surface of whole wing is
+     rough ($k_{s} = 0.001$).\\
 
     $\rightarrow$ \texttt{rest\_residuals}        & Make sure ADflow converges to
     the same solution as reference file.\\
 
-    $\rightarrow$ \texttt{rest\_adjont} & Make sure the adjoint vectors converge
+    $\rightarrow$ \texttt{rest\_adjoint} & Make sure the adjoint vectors converge
     to the same solution as a reference file.\\
 
     \midrule
@@ -441,8 +569,8 @@ an overview.
 
     \midrule
 
-    \texttt{TestFunctionals\_9\_Rough\_SA\_wing} & 3D mesh of a wing whose
-    surface is totally rough ($k_{s} = 0.001$).\\
+    \texttt{TestFunctionals\_9\_Rough\_SA\_wing} & Surface of whole wing is
+     rough ($k_{s} = 0.001$).\\
 
     $\rightarrow$ \texttt{rest\_residuals}        & Make sure ADflow converges to
     the same solution as reference file.\\
@@ -469,14 +597,14 @@ an overview.
     \midrule
 
     \texttt{TestFunctionals\_10\_Rough\_SA\_wing} & Same tests as in
-    \texttt{TestFunctionals\_9\_Rough\_SA\_wing}, but the reference file is from a
-    previous testcase. This should make sure SA rough with $k_{s} = 0$ behaves like
-    the standard SA model. \\
+    \texttt{TestFunctionals\_9\_Rough\_SA\_rans\_tut\_wing}, but the surface has a
+    roughness of $k_{s} = 0$ (clean). The reference file is from a standard SA
+    testcase. This should make sure SA rough with $k_{s} = 0$ behaves like the
+    standard SA model. \\
 
   \bottomrule
 
-  \end{tabularx}
-  \endgroup
   \caption{Newly introduced tests for SA rough.}
   \label{tab:tests}
-\end{table}
+\end{xltabular}
+\endgroup
