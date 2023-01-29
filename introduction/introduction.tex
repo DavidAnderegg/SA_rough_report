@@ -1,31 +1,62 @@
-In a previous project, the author developed new airfoils for a vertical axis
-wind turbine \cite{awp} using a CFD Solver called ADflow. It became clear that
-the performance of the airfoils in soiled conditions must be taken into
-account. The airfoils are highly sensitivity to surface contamination if
-neglected. To fix this, the author implemented a `hacky` variant of the rough
-\gls{sa} turbulence model.
+When performing optimizations, the optimizer tries to maximize the objective as
+much as possible. This means, one operates in the limit of the modeling process
+used. Imagine an airfoil optimization where the goal is to increase the maximum
+coefficient of lift $c_{l}$. In this example, only one design variable is
+available: the angle of attack $\alpha$. To simulate the airfoils performance, a
+Reynolds Averaged Navier Stokes (RANS) approach is implemented. During the
+optimization, the optimizer increases $\alpha$ right until the point where the
+flow starts to separate as this is the point where the highest $C_{l}$ lies for
+an airfoil. But this means, it is absolutely necessary to accurately predict the
+point of separation. When this is not the case, the optimizer exploits effects
+that do not exist in reality and thus the whole optimization is useless.
+
+ADflow is an open source RANS solver that also computes the gradients of the
+objective (and constraints) with respect to the design variables in an efficient
+matter called the \textit{adjoint method}. In real life aerodynamic applications
+as airplanes or wind turbines, surface contamination plays an important role.
+The primary effect of such contamination is a roughening of the surface. Thus it
+is important to be able to simulate and optimize for rough surfaces. The goal of
+this project is to implement exactly this in ADflow.
 
 
 \section{Goals}
-The goal of this project is to streamline and finalize this implementation.
-Namely the following sub-goals should be achieved:
+As said before, the goal is to be able to simulate and optimize taking the
+effects of rough surfaces into account. ADflow's primary turbulence model is
+known as \textit{Spalart Allmaras} (SA). It is a one-equation model that was
+proposed in 1992. It is widely used for external aerodynamic applications. In
+2002, a modification for rough surfaces was published. This project implements
+this modification. Thus the projects aims may be listed as follows:
 
 \begin{itemize}
-  \item Modify the existing \gls{sa} turbulence model for rough walls
+  \item Modify the existing SA turbulence model for rough walls
   \item Test and verify the implementation.
-  \item Use \gls{ad} to differentiate the newly added code
-  \item Test and verify the gradients for the rough variant
+  \item Use \gls{ad} to differentiate the newly added code. This is needed for
+the adjoint method.
+  \item Test and verify the modified gradients.
 \end{itemize}
 
 
 \section{ADflow}
-The CFD Solver ADflow (AD stands for \Gls{ad}) is developed at the university of
-Michigan. It is based on a structured, multiblock solver called `sumb`. It has
-been adapted for gradient based optimization by means of \gls{ad} and the
-`adjoint method`. Additionally it has some highly efficient and robust ANK and
-NK Solvers. Those are needed to achieve machine-precision convergence which is a
-requirement for efficient gradient basded optimization \cite{Mader2020a}
-\cite{Kenway2019a} \cite{Yildirim2019b}.
+Before heading straight in, a few words about ADflow and its history are
+provided. It is an open-source RANS that is developed and maintained at the
+university of Michigan. It is based on a structured, multiblock solver called
+\textit{sumb} and has been adapted for gradient based optimization by means of
+\textit{Algorithmic Differentiation}\footnote{Thats what AD stands for in
+ADflow.} and the \textit{adjoint method}.
 
-ADflow has a python interface which makes it fairly easy and straight forward to
-be used in optimizations scripts. But the heavy lifting is done in Fortran. This approach allows to combine highly effiecent and fast computations with the easy of a scripting language.
+In optimization, a lot of simulations are necessary until a optimal design is
+found. It is also highly important to always get an objective value for each
+design, even if, or especially when, it is unphysical. Otherwise the optimizer
+does not know how bad the current design might be.
+
+
+To cater those regiments, ADflow employs some highly efficient and robust
+NK\footnote{NK stands for the Newton–Krylov method.} and ANK\footnote{ANK is an
+approximated Newton–Krylov method.} solvers. Those can achieve machine-precision
+convergence, even for aircraft configurations at an angle of attack of 90\degree
+\cite{Mader2020a} \cite{Kenway2019a} \cite{Yildirim2019b}.
+
+
+Most of ADflow is written in Fortran. But it is interfaced in Python. This means,
+the heavy lifting is done in a fast language, but the regular user has the
+benefits of an object-oriented high level interpreter language.
