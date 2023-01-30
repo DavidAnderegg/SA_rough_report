@@ -40,15 +40,17 @@ author is happy report that all tests have passed.
 \section{Flap plate at zero incidence}
 
 \subsubsection{Grid Convergence}
-In figure \ref{fig:gc_rumsey_comp} the convergence for the differently sized
-grids is shown. The mesh-sizes are listed in table \ref{tab:plate_sizes}.
-
-
-TBD!!!!!
+In figure \ref{fig:gc_rumsey_comp}, the grid convergence for various roughness
+values is shown.  Additionally, grid convergence data for two different solvers
+from \cite{rumsey_flat} is available for the skin friction coefficient. For
+ADflow, the expected convergence rate is 2. When computing the actual ratio using equation
+\ref{eq:conv_rate}, one gets a ratio of approximately 1. This is less than
+expected and will be investigated further.
 
 \begin{figure}[H] \centering
-  \includegraphics[width=0.65\textwidth]{comp/gc_rumsey_comp}
-    \caption{Grid convergence for various roughness values.}
+  \includegraphics[width=0.9\textwidth]{comp/gc_rumsey_comp}
+    \caption{Grid convergence for various roughness values. The skin friction
+coefficient is overlayed with data from \cite{rumsey_flat}.}
     \label{fig:gc_rumsey_comp}
 \end{figure}
 
@@ -166,12 +168,15 @@ observable.
     \label{fig:vp_rumsey_comp}
 \end{figure}
 
+\subsection{Offset}
+As has been shown in the last section, the SA rough implementation in ADflow is
+somehow not correct. It is observable that the predicted shape of the curves is
+correct, but they seem to be offset compared to experiments and SU2. At the time
+of writing it is not clear what is causing this, but it will be investigated
+further.
 
-
-
-
-\section{Automated tests}
-Reporting the results of the automated tests is easiest done in tabular form.
+\section{Automated tests} Reporting the results of the automated tests is
+easiest done in tabular form.
 Thus, take a look at table \ref{tab:tests_results}.
 
 
@@ -260,10 +265,8 @@ tolerance of \num{5e-10} and a relative tolerance of \num{1e-8}. \\
 
 \noindent All tests passing except for the geometric design variables in
 \texttt{TestCmplxStep\_5\_Rough\_SA\_wing} indicates that there is something
-wrong with the Automatic Differentiation. The author has a strong suspicion on
-what it might be. But to fix it, a rewrite of much of the code would be
-necessary. As the deadline for this project is approaching fast, it is not
-possible to commit to such a big change that late into the project.
-
-Thus, the decision was made to keep the bug, report and document it properly and
-to fix it in the future.
+wrong with the Automatic Differentiation. Although it is important to point out
+the size of the relative error at \num{1e-7} is already quite small. The
+\textit{finite differences} approach could only yield such an accurate gradients
+when finding the perfect step length, which is not to be expected. This will
+also be investigated further.
