@@ -25,6 +25,8 @@
 \usepackage[acronym]{glossaries}
 \usepackage{tabularx}
 \usepackage{xltabular}
+\usepackage{setspace}
+
 
 \usepackage{tablefootnote}
 
@@ -87,15 +89,38 @@
 \setlength{\parskip}{.25em}
 
 \begin{document}
-    % \maketitle
+    \input{titlepage.tex}
 
-    % \begin{abstract}
-    %   blablbalabl
-    % \end{abstract}
 
-    % \tableofcontents\clearpage
-    % \listoffigures\clearpage
-    % \listoftables\clearpage
+    \begin{abstract}
+      As the available computer power increases, Reynolds Averaged navier Stokes
+(RANS) based optimizations come more and more in reach. When performing such
+high fidelity optimization, it is necessary to properly represent all flow
+conditions. If one fails to do so, the optimizer will exploit effects that do
+not exist in reality.
+
+      This work extends the Spalart Allmaras (SA) turbulence model in the open
+source CFD solver ADflow for rough walls with a modification originally proposed
+by Boeing. ADflow is specialized in optimizations and thus uses the
+\textit{adjoint method} to compute the gradients needed in an efficient manner.
+To make the rough modification available for optimizations, the changes have
+been differentiated using Automatic Differentiation (AD).
+
+    For verification, the implementation is compared against theory, the open
+source CFD solver SU2 and experimental data of a \textit{flat plate a zero
+incidence} for various surface roughnesses. The modified gradients are verified
+using the complex step method.
+
+    The results show that the implementation under-predicts the effect of
+roughness. But the predicted shape of the effect is correct. The computed
+gradients only match to a relative tolerance of \num{1e-7} compared to complex
+step. A relative tolerance of less than \num{1e-8} should be achievable with the
+methods employed.
+
+
+    \end{abstract}
+
+    \tableofcontents\clearpage
 
 
     \chapter{Introduction}
@@ -114,6 +139,10 @@
 
     \chapter{Conclusion}
     \input{conclusion/conclusion.tex}
+
+    \listoffigures\clearpage
+    \listoftables\clearpage
+
 
     \printbibliography
 
