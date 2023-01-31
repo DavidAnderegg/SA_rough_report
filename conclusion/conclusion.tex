@@ -11,12 +11,12 @@ needed. This might sound easy on first sight. But one has to keep in mind that
 ADflow is a parallel code. This means the whole mesh is split across different
 processors. Each processors has only access to mesh cells he owns. Thus the
 roughness value of the nearest wall for the current cell might live on a
-different processors and must be communicated across. Figuring out this
+different processor and must be communicated across. Figuring out this
 communication was challenging and error prone. To make sure it was implemented
 correctly, testcases with cubes and cuboids were set up. Those tests would
 either fail or look wrong when the communication was not implemented correctly.
 
-To validate the modifications itself, testcases with rough walls were setup.
+To validate the modifications itself, test cases with rough walls were setup.
 Those cases compare ADflow to experimental data, theory and the open source
 Solver SU2. They could show that the rough modification with a surface roughness
 of 0 would still be the same as the standard SA model. Unfortunately, they also
@@ -38,13 +38,13 @@ a relative tolerance of \num{1e-7}. It is unclear what was causing this and will
 be investigated further.
 
 To conclude, a solid base was created. Although some bugs are still present that
-need further work. Luckily, they do not really affect an optimization in the
-following sense: (1) The detrimental grid convergence can by accounted for with
-finer grids. (2) The offset of the gradients is so small that an optimization
+need further work. Luckily, they do not affect an optimization in the following
+sense: (1) The lower than expected grid convergence does not directly affect an
+optimization. (2) The offset of the gradients is so small that an optimization
 would still converge, maybe a bit slower. (3) The offset of the roughness
 effects can be compensated with a higher than expected surface roughness value.
-This is possible because the predicted shape of the roughness effects matches.
+This is possible because the predicted shape of the roughness effects match.
 And lastly, in optimization, it is more important to take effects of roughness
 into account than accurately predicting those. After all, it is extremely
-difficult to define a roughness value for e.g a soiled wind turbine blade after
-20 years of service.
+difficult to define a valid roughness value for e.g a soiled wind turbine blades
+after 20 years of service.

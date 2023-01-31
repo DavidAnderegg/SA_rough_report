@@ -1,13 +1,18 @@
 \section{Implementation}
+Please note it was not possible to properly cite all the ADflow specific
+information given in this section. Most of it comes from talks with one of the
+supervisors and developer of ADflow \textit{Dr. Anil Yildirim}. The remaining
+part comes from reading the source code.
+
 Before explaining how the modifications for SA-rough were implemented, a couple
 of words about the architecture of ADflow are needed.
 
 \paragraph{Block architecture}
 This solver only reads \textit{structured grids}, this means all state and grid
 variables can be represented in a ``three dimensional table''. One can also think
-of a 3d array. This organization is called the \textit{block architecture}. The
+of a 3D array. This organization is called the \textit{block architecture}. The
 index of the block variables are \texttt{i}, \texttt{j} and \texttt{k}. Each
-block has 6 faces. They are identified with \texttt{iMin}, \texttt{iMax}, etc.
+block has 6 faces. They are identified with \texttt{iMin}, \texttt{iMax}, \texttt{jMin}, etc.
 
 \paragraph{Boundary Conditions}
 ADflow saves the values of the boundary conditions in a similar way as the block
@@ -17,7 +22,7 @@ surface cell at the boundary, but it is important to realise surface and volume
 cells are different entities.
 
 \paragraph{Global Cell ID}
-ADflow assigns a \textit{global cell id} (\texttt{gID} to each volume cell. The
+ADflow assigns a \textit{global cell id} \texttt{gID} to each volume cell. The
 index is a continuously increasing integer that starts at \textbf{0}. It is
 applied in a systematic manner that will not be explained further.
 
@@ -25,11 +30,10 @@ applied in a systematic manner that will not be explained further.
 ADflow is capable of solving the governing equations by parallel means. To make
 this possible, the whole mesh is split in different blocks. Each processor then
 only loads its corresponding sub-block. It is important to realize that no
-single processor has access to the whole volume or surface
-cells\footnote{Assuming more than one processor is used}.
+single processor has directly access to the whole mesh\footnote{Assuming more than one processor is used}.
 
 \subsection{General thoughts}
-This modifications requires a little bit more RAM and cpu power. It could also
+This modification requires a little bit more RAM and cpu power. It could also
 obscure the standard implementation of the SA model. To cater those
 considerations, an on/off switch has been introduced in the python layer called
 \texttt{useRoughSA}. When it is \texttt{False}, all implemented changes are
@@ -38,12 +42,12 @@ disabled and ADflow behaves exactly as it did before.
 
 \subsection{Changes to wall distance}
 The regular SA model needs the distance to the nearest wall. ADflow computes
-this distance in a preprocessing step and saves it as a block variable
-\texttt{d2wall} for further use. It is slightly more complicated as ADflow can
+this distance in a preprocessing step and saves it in a block variable called
+\texttt{d2wall}. It is slightly more complicated as ADflow can
 handle warping meshes and thus this distance needs to be adjusted after each
 warp, but this will be explained in more detail later. As shown in equation
-\ref{eq:d_new}, the distance to the nearest wall needs to be modified. There are
-two strategies to achieve this:
+\ref{eq:d_new}, the distance to the nearest wall needs to be modified for the
+rough SA variant. There are two strategies possible:
 
 \begin{enumerate}
   \item Overwrite the current \texttt{d2wall} with the modified value. E.g. do
@@ -54,7 +58,7 @@ two strategies to achieve this:
 
 \noindent Strategy (2) has been chosen as changing the \texttt{d2wall} might
 have unforeseen consequences and is just obscuring. But this means, a new block
-variable \texttt{ks} needs to be introduced. It will hold the roughness value of
+variable called \texttt{ks} is introduced. It will hold the roughness value of
 the nearest surface.
 
 \subsubsection{Calculating the distance to the nearest wall}
@@ -67,20 +71,20 @@ adapt this function. To explain the changes, one must know how it works:
   \item The function \texttt{buildClusterWalls} is called. It figures out which
 surface mesh belongs to the \textit{no-slip wall} type and gathers all of it on
 each processor. This does not scale. But it is assumed the surface mesh is
-orders of magnitudes smaller than the volume mesh.  Thus this only becomes a
+orders of magnitudes smaller than the volume mesh. Therefore this only becomes a
 problem when the size of the volume mesh approaches hundreds of millions of
 cells.
 
 Once it has this information, it builds up the whole surface mesh. This is not
 straight forward as it might be an overset\footnote{This is also know as Chimera
-patch.} mesh where different meshes are overlapping. Therefore it must decide
+patch.} mesh where different meshes are overlapping. It must decide
 which cells to drop and which to keep.
 
 After that, it relates the surface mesh to the volume cells and returns the
 \texttt{gID}. At first glance, it might seem weird to return ``volume cells''
 when the distance to a surface cell is required. But the grid points of both
 types are the same and for the walldistance computation the boundary conditions
-do not matter.
+do not matter. This construct is called \texttt{clusterWalls}.
 
   \item Once the \texttt{clusterWalls} are built, the function
 \texttt{determineWallAssociation} iterates through all the volume cells on the
@@ -131,7 +135,7 @@ for meshes and their solutions. It is the primary format that ADflow interacts
 with.} file once the walldistance has already been calculated. Thus it is not
 possible to do it when step (2) is done. ADflow has some helper functions that
 allow to overwrite the values of the boundary conditions which are saved in the
-CGNS file. Having a separate subroutine to assign \texttt{ks} allows us to also use
+CGNS file. Having a separate subroutine which is called later allows to also use
 those helper functions for the wall roughness.
 \end{enumerate}
 
@@ -140,7 +144,7 @@ in more detail:
 
 \begin{enumerate}[label=\Alph*]
   \item Each processor creates two lists: List (a) holds the roughness values of
-the surface cells on current processor and list (b) holds the corresponding
+the surface cells on the current processor and list (b) holds the corresponding
 \texttt{gID}. To calculate the \texttt{gID}, the surface cell must be related to
 the volume cell.
 
@@ -152,7 +156,7 @@ totally required RAM is not increased significantly.
 
 \item Now, each processor iterates through its volume cells and requests the
 \texttt{gID} from \texttt{nearestWallCellInd}. Then it searches list ($\beta$)
-until it finds the same \texttt{gID} and writes down the index \texttt{I} where
+until it finds the same \texttt{gID} and keeps the index \texttt{I} where
 it found it.
 
 \item Finally, it assigns the value of list ($\alpha$) at index \texttt{I} to the
@@ -240,7 +244,7 @@ solving for $\tilde \nu_{h}$, one gets:
 \end{equation}
 
 \noindent The underlying assumption is, that the first cell to the wall is not
-skewed and its center is normal to the wall. But this is in general good practice
+skewed and its center is normal to the wall. This is in general good practice
 and highly recommended for RANS meshes.
 
 
@@ -286,7 +290,7 @@ solution grid (if requested).
 The first test is a cube where each face is split into 9 parts. The center of
 each face has been prescribed a roughness value of $k_{s} = 1.0$. The rest of
 each face gets a value of $k_{s} = 0.1$. Figure \ref{fig:cube_oid_ks_prop} shows
-the surface and the corresponding roughness values. This test makes it easy to
+the surface with the corresponding roughness values. This test makes it easy to
 verify that the propagation is sound.
 
 \subsubsection{Overset cube}
@@ -330,7 +334,7 @@ $k_{s} = 0.1$ and red equals $k_{s} =1.0$.}
 It is necessary to compare the SA rough implementation against theory and
 experiments. As it is hard to get experimental data, the \textit{flat plat a
 zero incidence} test case has been chosen for all comparisons. NASA maintains a
-website called \textit{turbulence modeling resource} \cite{rumsey_flat}. There,
+website called \textit{Turbulence Modeling Resource} (TMR) \cite{rumsey_flat}. There,
 various formulations for different turbulence models may be found. Additionally
 it provides testcases, grids and validation data. The following grid-family with
 its corresponding boundary conditions was sourced from there (figure
@@ -406,7 +410,7 @@ were used, but the flow conditions were adapted as follows:
 
 
 \subsubsection{Acharya et al.}
-Acharya et al. provide some experimental data for flows with surface roughness
+Acharya et al. provides some experimental data for flows over rough surfaces
 \cite{Acharya1986}. Skin frictions coefficients could be obtained for two
 testcases. For the last case, a mean velocity profile was also available.
 \cite{sa_rough} estimates $k_{s}^{+}$ to be around $25$ for the first testcase
@@ -424,7 +428,7 @@ and approximately $70$ for the second. The same meshes as before were use, but t
     Surface roughness 3 &   0.00205  & m \\
     \bottomrule
   \end{tabular}
-  \caption{Flow conditions for the ancharya case.}
+  \caption{Flow conditions for the Acharya case.}
   \label{tab:plate_sizes}
 \end{table}
 
@@ -462,7 +466,7 @@ The idea of \textit{Regression tests} is to catch breaking changes. The are
 usually (in this context) a typical CFD case with a really coarse mesh. Once a
 feature is completed, a reference file is trained with this case. This reference
 file stores some identifiers of the cfd solution to a high precision. The test
-then runs the same CFD case and compares if the solution matches the reference
+then runs the same CFD case and compares the result with the reference
 file.
 
 The purpose of \textit{unit tests} is to test a feature while it is developed.

@@ -17,7 +17,7 @@ $k_{s} = 1.0$ and blue $k_{s} = 0.1$.}
 \end{figure}
 
 \subsubsection{Overset cube}
-Similar to the previous test, is used to show that the roughness values are
+Similar to the previous test, it is used to show that the roughness values are
 propagated correctly for  overset meshes. As described in section
 \ref{subsec:roughness_prop}, it was necessary to refine the mesh a bit. This was
 needed as the \textit{implicit hole cutting} would fail otherwise. In figure
@@ -58,7 +58,7 @@ coefficient is overlayed with data from \cite{rumsey_flat}.}
 \subsubsection{Clean}
 In figure \ref{fig:cf_clean}, the skin friction coefficient over the flat plate
 for a roughness value of $k_{s} = 0$ (clean) is shown. It is compared against
-theory and data from the NASA tmr website \cite{rumsey_flat}. When looking
+theory and data from the NASA TMR website \cite{rumsey_flat}. When looking
 closely, ADflow and CFL3D agree well, but the theory is slightly off. The
 agreement of both solvers indicates that the SA implementation is done correctly
 (for a clean surface) in ADflow. The offset to theory probably means that the SA
@@ -76,7 +76,7 @@ can be observed in other plots as well, but only for ADflow.
 
 \noindent In figure \ref{fig:vp_clean}, the velocity profile at different
 positions on the flat plate is plotted. It is compared against theory and
-reference data from CFL3D. All curves agree extremely well.
+reference data from CFL3D. All curves agree well.
 \begin{figure}[H] \centering
   \includegraphics[width=0.6\textwidth]{comp/vp_clean}
     \caption{Velocity profile for a roughness value of $k_{s} = 0$ compared
@@ -107,7 +107,7 @@ In figure \ref{fig:cf_acharya}, the skin friction coefficient for various
 roughness values are plotted against theory and two experiments from
 \cite{Acharya1986}. As before, the theory and clean case agree well. But the
 rough cases do not. First of all, the skin friction coefficient is
-under-predicted for ADflow. Coincidentally, the simulation for case two aligns
+under-predicted by ADflow. Coincidentally, the simulation for case two aligns
 with case one. When ignoring the offset, one can conclude that at least the
 predicted shape matches. The two curves do not agree at the beginning, but this
 may be explained through transitional effects as the SA model is fully
@@ -145,8 +145,8 @@ To validate the implementation itself, the skin friction coefficient for various
 roughness values is plotted against data from SU2. For the clean case, both
 solvers agree well. But for the rough cases, one can observe the same offset as
 seen before. For ADflow, the ``numerical'' transition can be seen clearly at the
-beginning. For SU2, it is obscured, but the author is happy to report that it
-does not exist.
+beginning. For SU2, it is obscured, but the author reports that it does not
+exist.
 
 \begin{figure}[H] \centering
   \includegraphics[width=0.6\textwidth]{comp/cf_rumsey_comp}
@@ -170,14 +170,13 @@ observable.
 
 \subsection{Offset}
 As has been shown in the last section, the SA rough implementation in ADflow is
-somehow not correct. It is observable that the predicted shape of the curves is
+somehow not correct. It is observable that the predicted shapes of the curves are
 correct, but they seem to be offset compared to experiments and SU2. At the time
-of writing it is not clear what is causing this, but it will be investigated
+of writing it is not clear what is causing this and will be investigated
 further.
 
 \section{Automated tests} Reporting the results of the automated tests is
-easiest done in tabular form.
-Thus, take a look at table \ref{tab:tests_results}.
+easiest done in tabular form. Take a look at table \ref{tab:tests_results}.
 
 
 \begingroup
@@ -203,10 +202,9 @@ Thus, take a look at table \ref{tab:tests_results}.
 tolerance of \num{5e-10} and a relative tolerance of \num{1e-8}. \\
 
     $\rightarrow$ \texttt{cmplx\_test\_geom\_dvs}& Fails with an absolute and relative
-    tolerance of \num{5e-9} as follows\footnote{All functionals are only listed
-      for \textit{span} as it does not provide much more additional insight.}:
+    tolerance of \num{5e-9} as follows:\\
 
-    \begingroup
+    &\begingroup
     \renewcommand{\arraystretch}{1.0} % adjust vertical spacing
     \begin{tabular}{l l r r}
       Functional & design var. & abs. tol.      & rel. tol. \\
@@ -221,6 +219,11 @@ tolerance of \num{5e-10} and a relative tolerance of \num{1e-8}. \\
 
     \end{tabular}
     \endgroup
+
+    \\
+
+    &Please note some design variables are neglected as it does not improve the
+    overall picture.
 
     \\
 
@@ -267,7 +270,7 @@ tolerance of \num{5e-10} and a relative tolerance of \num{1e-8}. \\
 \texttt{TestCmplxStep\_5\_Rough\_SA\_wing} indicates that there might be
 something wrong with the geometric derivatives. It is unclear what is causing
 this and will be investigated further. Although it is important to point out the
-size of the relative error at \num{1e-7}. This is already quite small. For
+size of the relative error of \num{1e-7} is already quite small. For
 comparison, the  \textit{finite differences} approach would only yield such
 accurate gradients when finding the perfect step length, which is not to be
 expected.

@@ -1,6 +1,6 @@
 \section{Boundary layer}
 To introduce the concept of a boundary layer, one has to think of a uniform flow
-in one direction with a certain speed ($U_{\infty}$). Now place a thin plate
+in one direction with a certain speed $U_{\infty}$. Now place a thin plate
 into this flow where its long side aligns with the flow direction. This setup is
 know as \textit{flat plate at zero incidence}. At the surface of the wall, the
 \textit{no slip condition} must be satisfied. This means, the flow slows down
@@ -8,7 +8,7 @@ until it reaches exactly zero at the surface. This slow down does not happen
 linearly and a large portion of the flow remains uniform. The flow is slowed
 down only near the surface of the plate due to friction forces. This area is
 called the \textit{boundary layer} or \textit{frictional layer}. It's thickness
-($\delta(x)$) depends on a lot of different factors, but most prominently on its
+$\delta(x)$ depends on a lot of different factors, but most prominently on its
 position from the leading edge. In reality, there is no hard border between the
 uniform flow and the boundary layer. Thus it is often defined as where the flow
 reaches 99\% of the velocity of the outer flow \cite{Schlichting2018}. Figure
@@ -20,7 +20,7 @@ reaches 99\% of the velocity of the outer flow \cite{Schlichting2018}. Figure
     \label{fig:boundary_layer_flat_plate}
 \end{figure}
 
-\paragraph{Types of boundary layers}
+\subsubsection{Types of boundary layers}
 The flow inside the boundary layer might be \textit{laminar} or
 \textit{turbulent}. In reality, it is laminar at the leading edge, transitions
 to turbulence over a certain length and becomes fully turbulent afterwards
@@ -28,7 +28,7 @@ to turbulence over a certain length and becomes fully turbulent afterwards
 \textit{turbulence model}, the first two types of boundary layer are not
 explained further.
 
-\paragraph{Frictional forces}
+\subsubsection{Frictional forces}
 As explained earlier, the flow in the boundary layer is slowed down until it
 becomes zero at the surface. This slowing down exerts a force in the flow
 direction on the surface. This force, normalized by its application area, is
@@ -40,12 +40,13 @@ coefficient, which may be easily compared, the shear stress is divided by the
   c_{f} = \frac{\tau_{w}(x)}{\frac{1}{2}\rho U_{\infty}^{2}}
 \end{equation}
 
-\noindent Where $\rho$ is the density of the fluid.
+\noindent Where $\rho$ is the density of the fluid and $c_{f}$ the skin friction
+coefficient.
 
 
 \subsection{Turbulent boundary layer}
 \label{sec:turbulent_BL}
-When looking closer at a turbulent boundary layer, once can observer two
+When looking closer at a turbulent boundary layer, one can observe two
 different regions. At the top is a \textit{turbulent layer} which is only
 indirectly affected by the friction with the wall. At the bottom is a layer that
 is really thin compared to the boundary layer. It is called \textit{viscous
@@ -108,8 +109,8 @@ function:
 \noindent The Karman constant $\kappa$ is equal to $0.41$ and $C^{+}$ equals to
 $5.0$ for smooth walls.
 
-\paragraph{Overlap layer ($5 < y^{+} < 30$)}
-The \textit{overlap layer} is located between the viscous sublayer and the
+\paragraph{Buffer layer ($5 < y^{+} < 30$)}
+The \textit{buffer layer} is located between the viscous sublayer and the
 logarithmic area. It is a region where the flow transitions from one to the
 other. It can not be described with such an easy equation as for the other two
 regions.
@@ -155,22 +156,23 @@ there exists a dimensionless $k_{s}^{+}$:
 \subsubsection{Equivalent sand roughness}
 Real surfaces are not made up of balls as assumed in figure
 \ref{fig:sand_roughness}, but instead have a random distribution of peaks and
-vales. But it is possible to define a \textit{equivalent sand roughness}
+vales. It is possible to define a \textit{equivalent sand roughness}
 $k_{seq}$ which has the same effect on the boundary layer as the
-\textit{standard roughness} assumed so fare. The author has found some formula
+\textit{standard roughness} assumed so far. The author has found some formula
 which allow the conversation of one to another, but they did not match with
 experimental data freely available and are thus deemed unreliable. According to
 \cite{Schlichting2018}, $k_{seq}$ must be obtained experimentally. It lists some
 values for common materials and surface finishes\footnote{This may be found on
 page 532.}.
 
-
+\subsubsection{The effect of roughness}
 In figure \ref{fig:rough_velocity_dist}, the velocity distribution for different
 $k_{s}^{+}$ values is plotted. When looking at a certain $y^{+}$ value, the
 rougher the surface is, the slower the flow. Because the boundary layer is the
 region where the flow reaches the infinite velocity ($U_{\infty}$), it must grow
 bigger. Thus the effect of roughness is simply a thickening of the boundary
-layer.
+layer. This leads to an increase of the skin friction and ultimately drag.
+Additionally, the separation behavior might be changed.
 
 \begin{figure}[H] \centering
 \includegraphics[width=0.4\textwidth]{rough_velocity_dist}
@@ -191,15 +193,16 @@ the viscosity effects vanish and the flow becomes fully rough
 \cite{Schlichting2018}.
 
 
-When looking at equation \ref{eq:overlap_law}, it simply changes the variable
-$C^{+}$. Thus it may be summarized as follows\footnote{Please note $C^{+}$ is
-not further described in the transition region.}:
+When looking at equation \ref{eq:overlap_law}, roughness simply changes the variable
+$C^{+}$. Thus it may be summarized as follows:
 
 \begin{table}[H]
   \centering
   \begin{tabular}{l l l}
     hydraulically smooth:   & $0 \leq k_{s}^{+} \leq 5$   & $C^{+} \approx 5.0$\\
-    transition region:      & $ 5 < k_{s}^{+} < 70$ & $C^{+}(k_{s}^{+})$\\
+    transition region\tablefootnote{Please note $C^{+}$ is
+    not further described in the transition region.}:
+                            & $ 5 < k_{s}^{+} < 70$ & $C^{+}(k_{s}^{+})$\\
     fully rough:            & $70 \leq k_{s}^{+}$      & $C^{+} \approx 8.0 - \frac{1}{\kappa} ln(k_{s}^{+})$
   \end{tabular}
   \caption{$C^{+}$ dependence on $k_{s}^{+}$ \cite{Schlichting2018}.}
@@ -209,23 +212,23 @@ not further described in the transition region.}:
 \section{Reynold's Averaged Navier Stokes (RANS)}
 The \textit{Navier-Stokes} equations describe how tho the \textit{velocity}
 ($U$), \textit{pressure} ($P$), \textit{temperature} ($T$) and \textit{density}
-($\rho$) of a moving fluid are related. They are differential equations which
-almost allway can't be solved analytically. Thus numerical methods are needed.
-The physical quantities depend on four variables: \textit{spatial coordinates}
-(x, y, z) and the \textit{time} (t). As numerical methods are used, those
-quantities need to be discretized \cite{nasaNS}.
+($\rho$) of a moving fluid are related. They are partial differential equations
+which almost allway can't be solved analytically. Thus numerical methods are
+needed.  The physical quantities depend on four variables: \textit{spatial
+coordinates} (x, y, z) and the \textit{time} (t). As numerical methods are used,
+those quantities need to be discretized \cite{nasaNS}.
 
 In high Reynold's number flows, the length and time-scales of different eddies
 differs drastically. To adequately resolve the smallest eddies, which are
-basically turbulence, such a fine mesh and timestep would be needed, that it is
-not viable. To deal with that, simplifications are needed: (1) solving for a
+basically turbulence, such a fine mesh and timestep would be needed that it is
+not viable. To deal with it, simplifications are needed: (1) solving for a
 steady flow and (2) accounting for turbulence stochastically. This means only
 one simulation (instead of one every x millisecond) and a much coarser grid is
 sufficient.
 
 \subsubsection{Reynolds averaging}
 Osborne Reynolds proposed in 1895 a solution which would later be known as
-\textit{Reynolds-averaged Navier-Stokes}. The basic idea is to separate the
+\textit{Reynolds Averaged Navier-Stokes}. The basic idea is to separate the
 velocity (and all the other physical properties which are resolved) in two
 components \cite{leschziner2015statistical}:
 
@@ -249,8 +252,10 @@ incompressible Navier-Stokes equations leads to:
   \frac{\partial}{\partial x_{j}} \rho u_{i}^{\prime} u_{j}^{\prime}
 \end{equation}
 
-\noindent Where $\rho u_{i}^{\prime} u_{j}^{\prime}$ are the \textit{six} independent
-\textit{Reynolds-stresses} which may be denoted in tensor notation:
+\noindent Where $\rho u_{i}^{\prime} u_{j}^{\prime}$ are the \textit{six}
+independent \textit{Reynolds-stresses}. Please note the fluctuating part for
+pressure $p^{\prime}$ cancels out and does not appear again. The Reynolds-stresses
+may be denoted in tensor notation:
 
 \begin{equation}
   \rho \bar u_{i} \bar u_{j} = \rho
@@ -409,19 +414,19 @@ two different methods are proposed:
         roughness is modeled through a reduction of the damping function.
   \item Models where the eddy viscosity is not zero at wall. This can be
         interpreted as shifting the wall upwards into the roughness.
-        Apparently, this approach works better for small roughness values.
+        According to \cite{sa_rough}, this approach works better for small
+        roughness values.
 \end{itemize}
 
 \noindent There exists two different extension for the SA model which employ the
 strategy of a non zero eddy viscosity at the wall. One proposed by
 \textit{Boeing} and the other by \textit{ONERA}. The approach by ONERA is
-slightly more complicated\footnote{It changes the SA model more.} and also needs
-the friction velocity. Thus this work implemented the extension proposed by
-Boeing.
+slightly more complicated and also needs the friction velocity. This work
+implemented the extension proposed by Boeing.
 
 \subsubsection{Changed terms}
 The biggest change is the distance $d$ which accounts for the shift of a
-'virtual' wall upwards \cite{sa_rough}\cite{nasatmr}:
+``virtual'' wall upwards \cite{sa_rough}\cite{nasatmr}:
 
 \begin{equation}
   \label{eq:d_new}

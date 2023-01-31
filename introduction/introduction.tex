@@ -8,24 +8,26 @@ optimization, the optimizer increases $\alpha$ right until the point where the
 flow starts to separate as this is the point where the highest $C_{l}$ lies for
 an airfoil. But this means, it is absolutely necessary to accurately predict the
 point of separation. When this is not the case, the optimizer exploits effects
-that do not exist in reality and thus the whole optimization is useless.
+that do not exist in reality and thus the whole optimization can not achieve its
+full potential. In the worst case, the results obtained might not even be
+usable.
 
 ADflow is an open source RANS solver that also computes the gradients of the
 objective (and constraints) with respect to the design variables in an efficient
-matter called the \textit{adjoint method}. In real life aerodynamic applications
+manner called the \textit{adjoint method}. In real life aerodynamic applications,
 as airplanes or wind turbines, surface contamination plays an important role.
 The primary effect of such contamination is a roughening of the surface. Thus it
-is important to be able to simulate and optimize for rough surfaces. The goal of
-this project is to implement exactly this in ADflow.
-
+is important to be able to simulate and optimize taking the effect of rough
+surfaces into account.
 
 \section{Goals}
-As said before, the goal is to be able to simulate and optimize taking the
-effects of rough surfaces into account. ADflow's primary turbulence model is
-known as \textit{Spalart Allmaras} (SA). It is a one-equation model that was
-proposed in 1992. It is widely used for external aerodynamic applications. In
-2002, a modification for rough surfaces was published. This project implements
-this modification. Thus the projects aims may be listed as follows:
+The goal of this work is to be able to simulate and optimize under the effects
+of rough surfaces. ADflow's primary turbulence model is known as \textit{Spalart
+  Allmaras}
+(SA). It is a one-equation model that was proposed in 1992. It is
+widely used for external aerodynamic applications. In 2002, a modification for
+rough surfaces was published. This project implements this modification. Thus
+the projects aims may be listed as follows:
 
 \begin{itemize}
   \item Modify the existing SA turbulence model for rough walls
@@ -38,22 +40,21 @@ the adjoint method.
 
 \section{ADflow}
 Before heading straight in, a few words about ADflow and its history are
-provided. It is an open-source RANS that is developed and maintained at the
-university of Michigan. It is based on a structured, multiblock solver called
+provided. It is an open-source RANS solver that is developed and maintained at
+\textit{MDOLab} at the university of Michigan. It is based on a structured,
+multiblock solver called
 \textit{sumb} and has been adapted for gradient based optimization by means of
 \textit{Algorithmic Differentiation}\footnote{Thats what AD stands for in
 ADflow.} and the \textit{adjoint method}.
 
-In optimization, a lot of simulations are necessary until a optimal design is
+In optimization, a lot of simulations are necessary until an optimal design is
 found. It is also highly important to always get an objective value for each
 design, even if, or especially when, it is unphysical. Otherwise the optimizer
-does not know how bad the current design might be.
-
-
-To cater those regiments, ADflow employs some highly efficient and robust
-NK\footnote{NK stands for the Newton–Krylov method.} and ANK\footnote{ANK is an
-approximated Newton–Krylov method.} solvers. Those can achieve machine-precision
-convergence, even for aircraft configurations at an angle of attack of 90\degree
+does not know how bad the current design is. To cater those concerns, ADflow
+employs some highly efficient and robust NK\footnote{NK stands for the
+Newton–Krylov method.} and ANK\footnote{ANK is an approximated Newton–Krylov
+method.} solvers. Those can achieve machine-precision convergence, even for
+aircraft configurations at an angle of attack of 90\degree
 \cite{Mader2020a} \cite{Kenway2019a} \cite{Yildirim2019b}.
 
 
