@@ -97,7 +97,7 @@
       As the available computer power increases, Reynolds Averaged Navier Stokes
 (RANS) based optimizations come more and more in reach. When performing such
 high fidelity optimization, it is necessary to properly represent all flow
-conditions. If one fails to do so, the optimizer will exploit effects that do
+conditions. If one fails to do so, the optimizer might exploit effects that do
 not exist in reality.
 
       This work extends the Spalart Allmaras (SA) turbulence model in the open
@@ -113,9 +113,9 @@ incidence} for various surface roughnesses. The modified gradients are verified
 using the complex step method.
 
     The results show that the implementation under-predicts the effect of
-roughness. But the predicted shape of the effect is correct. The computed
+roughness. But the predicted shape of the effect seems correct. The computed
 gradients only match to a relative tolerance of \num{1e-7} compared to complex
-step. A relative tolerance of less than \num{1e-8} should be achievable with the
+step. A relative tolerance of less than \num{1e-8} would be desirable with the
 methods employed.
 
 
