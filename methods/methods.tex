@@ -207,7 +207,7 @@ ADflow is capable of deploying second order schemes and thus needs two layers of
 halo cells. But the idea remains the same. As they are not always active, ADflow
 takes care of interpolating them by itself.
 
-\paragraph{Explicit boundary conditions}
+\subsubsection{Explicit boundary conditions}
 The concept of halo cells can also be used to prescribe the regular boundary
 conditions like a \textit{no-slip wall}. According to equation
 \ref{eq:sa_nu_wall_0}, the regular SA model needs a boundary condition of
@@ -244,10 +244,11 @@ skewed and its center is normal to the wall. But this is in general good practic
 and highly recommended for RANS meshes.
 
 
-\paragraph{Implicit boundary conditions}
-ADflow also has some implicit solvers, thus the implicit boundary conditions need to be changed.
-
-TBD!!!!
+\subsubsection{Implicit boundary conditions}
+ADflow uses a \textit{Diagonal Dominant Alternate Direction Implicit} method
+(DDADI) to solve the turbulence equation. This requires a special treatment of
+the boundary conditions. Thus they also had to be modified. Because this is
+implementation specific, it will not be explained further.
 
 \subsection{Automatic Differentiation}
 As described in \cite{cm1}, ADflow uses Automatic/Algorithmic Differentiation to

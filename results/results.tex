@@ -264,9 +264,10 @@ tolerance of \num{5e-10} and a relative tolerance of \num{1e-8}. \\
 
 
 \noindent All tests passing except for the geometric design variables in
-\texttt{TestCmplxStep\_5\_Rough\_SA\_wing} indicates that there is something
-wrong with the Automatic Differentiation. Although it is important to point out
-the size of the relative error at \num{1e-7} is already quite small. The
-\textit{finite differences} approach could only yield such an accurate gradients
-when finding the perfect step length, which is not to be expected. This will
-also be investigated further.
+\texttt{TestCmplxStep\_5\_Rough\_SA\_wing} indicates that there might be
+something wrong with the geometric derivatives. It is unclear what is causing
+this and will be investigated further. Although it is important to point out the
+size of the relative error at \num{1e-7}. This is already quite small. For
+comparison, the  \textit{finite differences} approach would only yield such
+accurate gradients when finding the perfect step length, which is not to be
+expected.
